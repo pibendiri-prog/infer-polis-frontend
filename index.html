@@ -5,30 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Infer-Polis v10.2.7.1 — Policy Intelligence Platform</title>
 
-  <!-- ✅ CSP (fixes blob: script block + allows API calls) -->
-  <meta
-    http-equiv="Content-Security-Policy"
-    content="
-      default-src 'self';
-      base-uri 'self';
-      object-src 'none';
-      frame-ancestors 'self';
-
-      script-src 'self' blob: 'wasm-unsafe-eval' 'unsafe-inline';
-      script-src-elem 'self' blob: 'unsafe-inline';
-
-      style-src 'self' 'unsafe-inline';
-
-      img-src 'self' data: blob:;
-      font-src 'self' data:;
-
-      worker-src 'self' blob:;
-      connect-src 'self' https://infer-polis.onrender.com;
-      form-action 'self';
-      upgrade-insecure-requests;
-    "
-  />
-
   <style>
     :root{
       --bg: #0b1220;
@@ -303,17 +279,20 @@
     const nowTime = () => new Date().toLocaleString();
 
     function showStatus(areaId, show=true){
+      // Show/hide status panels (audit + feedback)
       const el = $(areaId);
       el.classList.toggle("show", show);
       el.style.display = show ? "block" : "none";
     }
 
     function setBadge(badgeEl, type, text){
+      // type: ok | err | warn
       badgeEl.className = "badge " + type;
       badgeEl.textContent = text;
     }
 
     function safePretty(text){
+      // Try to format JSON; if not JSON, show raw text.
       try {
         const obj = JSON.parse(text);
         return JSON.stringify(obj, null, 2);
@@ -323,17 +302,13 @@
     }
 
     function extractQuickMetrics(text){
-      // Supports BOTH:
-      // 1) flat: { readiness_score, feasibility_band, verdict }
-      // 2) nested: { ok:true, audit:{ readiness_score, feasibility_band, verdict } }
+      // If backend returns JSON containing readiness_score / feasibility_band / verdict,
+      // show quick metric cards above the raw response.
       try {
         const obj = JSON.parse(text);
-        const a = obj.audit ?? obj;
-
-        const rs = a.readiness_score ?? a.readiness ?? a.scores?.readiness_score;
-        const fb = a.feasibility_band ?? a.band ?? a.verdict?.feasibility_band;
-        const vd = a.verdict ?? a.decision ?? a.scores?.verdict;
-
+        const rs = obj.readiness_score ?? obj.readiness ?? obj.scores?.readiness_score;
+        const fb = obj.feasibility_band ?? obj.band ?? obj.verdict?.feasibility_band;
+        const vd = obj.verdict ?? obj.decision ?? obj.scores?.verdict;
         return { rs, fb, vd };
       } catch {
         return null;
@@ -353,6 +328,7 @@
       localStorage.removeItem("ip_api_key");
     }
     function updateKeyUI(){
+      // Professional UX: do not display the key; only show status.
       const key = getApiKey();
       $("keyStatus").innerHTML = key
         ? `Status: <span class="mono">Key saved ✓</span>`
@@ -360,13 +336,14 @@
     }
 
     // =========================================================
-    // BACKEND HEALTH CHECK
+    // BACKEND HEALTH CHECK (for user confidence)
     // =========================================================
     async function checkBackend(){
       const pillText = $("pillText");
       const dot = $("pillDot");
 
       try{
+        // Assumes your backend has GET /
         const res = await fetch(`${BACKEND_BASE}/`, { method:"GET" });
         if (!res.ok) throw new Error("Not OK");
         dot.style.background = "var(--accent2)";
@@ -423,12 +400,14 @@
       const fileInput = $("fileInput");
       const apiKey = getApiKey();
 
+      // reset UI
       $("auditMeta").textContent = "";
       $("auditRaw").textContent = "";
       $("auditQuick").innerHTML = "";
       $("auditQuick").style.display = "none";
       showStatus("responseArea", false);
 
+      // validation
       if (!tenant){
         showStatus("responseArea", true);
         setBadge($("auditBadge"), "warn", "Missing tenant");
@@ -454,6 +433,7 @@
       const file = fileInput.files[0];
       $("auditMeta").textContent = `Uploading: ${file.name} (${Math.round(file.size/1024)} KB)`;
 
+      // lock button + show spinner
       const btn = $("submitButton");
       btn.disabled = true;
       $("auditSpinner").style.display = "inline";
@@ -462,11 +442,14 @@
       $("auditTime").textContent = nowTime();
       showStatus("responseArea", true);
 
+      // Build multipart form payload for file upload
       const formData = new FormData();
       formData.append("file", file);
+      // Optional hint if your backend reads it for logging/routing
       formData.append("country", tenant);
 
       try{
+        // Send request with required auth + tenant headers
         const res = await fetch(`${BACKEND_BASE}/policy/audit`, {
           method: "POST",
           headers: {
@@ -478,6 +461,7 @@
 
         const text = await res.text();
 
+        // Friendly HTTP-aware errors
         if (!res.ok) {
           let msg = text || res.statusText || "Request failed";
           if (res.status === 401) msg = "Unauthorized: API key missing or invalid.";
@@ -492,6 +476,7 @@
         $("auditTime").textContent = nowTime();
         $("auditRaw").textContent = safePretty(text);
 
+        // Try to show quick metric cards if JSON contains them
         const quick = extractQuickMetrics(text);
         if (quick){
           const { rs, fb, vd } = quick;
@@ -543,6 +528,7 @@
       $("fbRaw").textContent = "";
       showStatus("feedbackResponse", false);
 
+      // validation
       if (!apiKey){
         showStatus("feedbackResponse", true);
         setBadge($("fbBadge"), "warn", "No API key");
@@ -558,6 +544,7 @@
         return;
       }
 
+      // lock UI
       $("sendFeedbackBtn").disabled = true;
       $("fbSpinner").style.display = "inline";
       setBadge($("fbBadge"), "warn", "Sending…");
@@ -577,6 +564,7 @@
 
         const text = await res.text();
 
+        // Friendly HTTP-aware errors
         if (!res.ok) {
           let msg2 = text || res.statusText || "Request failed";
           if (res.status === 401) msg2 = "Unauthorized: API key missing or invalid.";
