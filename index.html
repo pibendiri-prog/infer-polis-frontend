@@ -1,146 +1,377 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Infer-Polis v10.2.7.1 — Policy Intelligence Platform</title>
 
   <style>
-    :root{
+    :root {
       --bg: #0b1220;
-      --panel: rgba(255,255,255,.06);
-      --panel2: rgba(255,255,255,.10);
-      --border: rgba(255,255,255,.14);
+      --panel: rgba(255, 255, 255, .06);
+      --panel2: rgba(255, 255, 255, .10);
+      --border: rgba(255, 255, 255, .14);
       --text: #e9eefc;
-      --muted:#a8b3d1;
-      --accent:#7c5cff;
-      --accent2:#39d98a;
-      --danger:#ff5c7a;
-      --warn:#ffcc66;
-      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --muted: #a8b3d1;
+      --accent: #7c5cff;
+      --accent2: #39d98a;
+      --danger: #ff5c7a;
+      --warn: #ffcc66;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .35);
       --radius: 16px;
       --radius2: 12px;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif;
       background:
-        radial-gradient(1200px 700px at 10% 10%, rgba(124,92,255,.25), transparent 55%),
-        radial-gradient(900px 600px at 90% 20%, rgba(57,217,138,.12), transparent 55%),
-        radial-gradient(700px 500px at 50% 90%, rgba(255,204,102,.08), transparent 60%),
+        radial-gradient(1200px 700px at 10% 10%, rgba(124, 92, 255, .25), transparent 55%),
+        radial-gradient(900px 600px at 90% 20%, rgba(57, 217, 138, .12), transparent 55%),
+        radial-gradient(700px 500px at 50% 90%, rgba(255, 204, 102, .08), transparent 60%),
         var(--bg);
-      color:var(--text);
+      color: var(--text);
       padding: 26px 18px 70px;
     }
-    .wrap{max-width:1100px;margin:0 auto;}
-    header{display:flex;gap:18px;align-items:center;justify-content:space-between;margin-bottom:18px;}
-    .brand{display:flex;gap:14px;align-items:center;}
-    .logo{
-      width:42px;height:42px;border-radius:14px;
-      background: linear-gradient(135deg, rgba(124,92,255,.9), rgba(57,217,138,.7));
-      box-shadow: 0 14px 40px rgba(124,92,255,.15);
-      border:1px solid rgba(255,255,255,.18);
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
     }
-    h1{margin:0;font-size:20px;letter-spacing:.2px;line-height:1.25;}
-    .subtitle{margin-top:2px;color:var(--muted);font-size:13px;}
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
+
+    header {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(124, 92, 255, .9), rgba(57, 217, 138, .7));
+      box-shadow: 0 14px 40px rgba(124, 92, 255, .15);
+      border: 1px solid rgba(255, 255, 255, .18);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: .2px;
+      line-height: 1.25;
+    }
+
+    .subtitle {
+      margin-top: 2px;
       color: var(--muted);
-      font-size: 12px;white-space:nowrap;
+      font-size: 13px;
     }
-    .dot{width:8px;height:8px;border-radius:50%;background: var(--warn);box-shadow: 0 0 0 4px rgba(255,204,102,.12);}
-    .grid{display:grid;grid-template-columns: 1.15fr .85fr;gap:18px;}
-    @media (max-width: 980px){.grid{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}}
-    .card{
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .12);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--warn);
+      box-shadow: 0 0 0 4px rgba(255, 204, 102, .12);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start
+      }
+    }
+
+    .card {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      overflow:hidden;
+      overflow: hidden;
     }
-    .card .top{
+
+    .card .top {
       padding: 16px 18px;
-      display:flex;justify-content:space-between;align-items:center;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .05), transparent);
     }
-    .card .top h2{margin:0;font-size:14px;letter-spacing:.3px;color:#f1f5ff;}
-    .card .top small{color:var(--muted);}
-    .card .body{padding:16px 18px 18px;}
-    label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px;}
-    .row{display:flex;gap:12px;flex-wrap:wrap;}
-    .row > *{flex:1}
-    select,input[type="text"],input[type="file"],textarea{
-      width:100%;padding:12px 12px;border-radius:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(7,12,22,.55);
+
+    .card .top h2 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: .3px;
+      color: #f1f5ff;
+    }
+
+    .card .top small {
+      color: var(--muted);
+    }
+
+    .card .body {
+      padding: 16px 18px 18px;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin: 10px 0 6px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .row>* {
+      flex: 1
+    }
+
+    select,
+    input[type="text"],
+    input[type="file"],
+    textarea {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      background: rgba(7, 12, 22, .55);
       color: var(--text);
-      outline:none;font-size:14px;
+      outline: none;
+      font-size: 14px;
     }
-    textarea{min-height:110px;resize:vertical}
-    select:focus,input:focus,textarea:focus{
-      border-color: rgba(124,92,255,.55);
-      box-shadow: 0 0 0 4px rgba(124,92,255,.15);
+
+    textarea {
+      min-height: 110px;
+      resize: vertical
     }
-    .actions{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap;align-items:center;}
-    .btn{
-      appearance:none;border:1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.06);
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      border-color: rgba(124, 92, 255, .55);
+      box-shadow: 0 0 0 4px rgba(124, 92, 255, .15);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, .16);
+      background: rgba(255, 255, 255, .06);
       color: var(--text);
-      padding:11px 14px;border-radius:12px;cursor:pointer;
-      font-weight:600;letter-spacing:.2px;font-size:14px;
-      display:inline-flex;align-items:center;gap:10px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: .2px;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       transition: transform .06s ease, background .12s ease, border-color .12s ease;
     }
-    .btn:hover{background: rgba(255,255,255,.10)}
-    .btn:active{transform: translateY(1px)}
-    .btn.primary{
-      border-color: rgba(124,92,255,.55);
-      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(124,92,255,.55));
-      box-shadow: 0 16px 40px rgba(124,92,255,.12);
+
+    .btn:hover {
+      background: rgba(255, 255, 255, .10)
     }
-    .btn.success{
-      border-color: rgba(57,217,138,.55);
-      background: linear-gradient(135deg, rgba(57,217,138,.8), rgba(57,217,138,.35));
-      box-shadow: 0 16px 40px rgba(57,217,138,.10);
+
+    .btn:active {
+      transform: translateY(1px)
     }
-    .btn.danger{border-color: rgba(255,92,122,.45);background: rgba(255,92,122,.12);}
-    .btn:disabled{opacity:.55;cursor:not-allowed;}
-    .helper{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.4;}
-    .status{
-      margin-top:14px;padding:12px 12px;border-radius:12px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      display:none;
+
+    .btn.primary {
+      border-color: rgba(124, 92, 255, .55);
+      background: linear-gradient(135deg, rgba(124, 92, 255, .95), rgba(124, 92, 255, .55));
+      box-shadow: 0 16px 40px rgba(124, 92, 255, .12);
     }
-    .status.show{display:block}
-    .status .head{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px;}
-    .badge{
-      display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;
-      font-size:12px;border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);color: var(--muted);white-space:nowrap;
+
+    .btn.success {
+      border-color: rgba(57, 217, 138, .55);
+      background: linear-gradient(135deg, rgba(57, 217, 138, .8), rgba(57, 217, 138, .35));
+      box-shadow: 0 16px 40px rgba(57, 217, 138, .10);
     }
-    .badge.ok{border-color: rgba(57,217,138,.45); color:#c9ffe6; background: rgba(57,217,138,.10)}
-    .badge.err{border-color: rgba(255,92,122,.45); color:#ffd0d9; background: rgba(255,92,122,.10)}
-    .badge.warn{border-color: rgba(255,204,102,.45); color:#ffe7b8; background: rgba(255,204,102,.10)}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;font-size:12px;color:#dfe6ff;}
-    pre{
-      margin:0;padding:12px;border-radius:12px;background: rgba(0,0,0,.35);
-      border:1px solid rgba(255,255,255,.10);
-      overflow:auto;max-height:360px;white-space: pre-wrap;word-break: break-word;
+
+    .btn.danger {
+      border-color: rgba(255, 92, 122, .45);
+      background: rgba(255, 92, 122, .12);
     }
-    .split{display:grid;grid-template-columns:1fr;gap:12px;}
-    .kpi{display:grid;grid-template-columns: repeat(3, 1fr);gap:10px;}
-    @media (max-width:520px){.kpi{grid-template-columns:1fr}}
-    .kpi .box{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background: rgba(255,255,255,.06);}
-    .kpi .box .t{color:var(--muted);font-size:12px}
-    .kpi .box .v{font-size:16px;font-weight:700;margin-top:4px}
-    .muted{color:var(--muted)}
-    .tiny{font-size:12px}
-    a{color:#c8bbff}
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .helper {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .status {
+      margin-top: 14px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      background: rgba(255, 255, 255, .06);
+      display: none;
+    }
+
+    .status.show {
+      display: block
+    }
+
+    .status .head {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      background: rgba(255, 255, 255, .06);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .badge.ok {
+      border-color: rgba(57, 217, 138, .45);
+      color: #c9ffe6;
+      background: rgba(57, 217, 138, .10)
+    }
+
+    .badge.err {
+      border-color: rgba(255, 92, 122, .45);
+      color: #ffd0d9;
+      background: rgba(255, 92, 122, .10)
+    }
+
+    .badge.warn {
+      border-color: rgba(255, 204, 102, .45);
+      color: #ffe7b8;
+      background: rgba(255, 204, 102, .10)
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      color: #dfe6ff;
+    }
+
+    pre {
+      margin: 0;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, .35);
+      border: 1px solid rgba(255, 255, 255, .10);
+      overflow: auto;
+      max-height: 360px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .kpi {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width:520px) {
+      .kpi {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .kpi .box {
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .kpi .box .t {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .kpi .box .v {
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 4px
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    .tiny {
+      font-size: 12px
+    }
+
+    a {
+      color: #c8bbff
+    }
   </style>
 </head>
 
@@ -222,7 +453,8 @@
             <h2>Admin & Feedback</h2>
             <small>Set API key, send feedback, and keep it lightweight.</small>
           </div>
-          <small class="muted">Headers: <span class="mono">X-API-Key</span>, <span class="mono">X-Tenant-ID</span></small>
+          <small class="muted">Headers: <span class="mono">X-API-Key</span>, <span
+              class="mono">X-Tenant-ID</span></small>
         </div>
 
         <div class="body">
@@ -230,7 +462,8 @@
           <input type="text" id="apiKeyInput" aria-label="Enter API key" placeholder="ipk_…" autocomplete="off" />
           <div class="actions">
             <button class="btn success" id="saveApiKeyButton" type="button" aria-label="Save API key">Save Key</button>
-            <button class="btn danger" id="clearApiKeyButton" type="button" aria-label="Clear API key">Clear Key</button>
+            <button class="btn danger" id="clearApiKeyButton" type="button" aria-label="Clear API key">Clear
+              Key</button>
           </div>
           <div class="helper" id="keyStatus">Status: <span class="mono">No key saved</span></div>
 
@@ -239,7 +472,8 @@
           <h3 style="margin:0 0 10px;font-size:14px">Feedback</h3>
           <form id="feedbackForm" aria-label="Feedback form">
             <label for="feedbackInput">Message</label>
-            <textarea id="feedbackInput" aria-label="Enter feedback message" placeholder="What worked? What should improve? (short is fine)"></textarea>
+            <textarea id="feedbackInput" aria-label="Enter feedback message"
+              placeholder="What worked? What should improve? (short is fine)"></textarea>
             <div class="actions">
               <button class="btn primary" type="submit" id="sendFeedbackBtn" aria-label="Send feedback">
                 Send Feedback <span class="mono" id="fbSpinner" style="display:none;">⏳</span>
@@ -270,218 +504,229 @@
     // CONFIG
     // =========================================================
     // Base URL of your Render backend
-    const BACKEND_BASE = "https://infer-polis.onrender.com";
+    const BACKEND_BASE = "https://infer-polis.onrender.com"
 
     // =========================================================
     // SMALL UTILITIES
     // =========================================================
-    const $ = (id) => document.getElementById(id);
-    const nowTime = () => new Date().toLocaleString();
+    const $ = (id) => document.getElementById(id)
+    const nowTime = () => new Date().toLocaleString()
 
-    function showStatus(areaId, show=true){
+    function showStatus(areaId, show = true) {
       // Show/hide status panels (audit + feedback)
-      const el = $(areaId);
-      el.classList.toggle("show", show);
-      el.style.display = show ? "block" : "none";
+      const el = $(areaId)
+      el.classList.toggle("show", show)
+      el.style.display = show ? "block" : "none"
     }
 
-    function setBadge(badgeEl, type, text){
+    function setBadge(badgeEl, type, text) {
       // type: ok | err | warn
-      badgeEl.className = "badge " + type;
-      badgeEl.textContent = text;
+      badgeEl.className = "badge " + type
+      badgeEl.textContent = text
     }
 
-    function safePretty(text){
+    function safePretty(text) {
       // Try to format JSON; if not JSON, show raw text.
       try {
-        const obj = JSON.parse(text);
-        return JSON.stringify(obj, null, 2);
+        const obj = JSON.parse(text)
+        return JSON.stringify(obj, null, 2)
       } catch {
-        return text;
+        return text
       }
     }
 
-    function extractQuickMetrics(text){
+    function extractQuickMetrics(text) {
       // If backend returns JSON containing readiness_score / feasibility_band / verdict,
       // show quick metric cards above the raw response.
       try {
-        const obj = JSON.parse(text);
-        const rs = obj.readiness_score ?? obj.readiness ?? obj.scores?.readiness_score;
-        const fb = obj.feasibility_band ?? obj.band ?? obj.verdict?.feasibility_band;
-        const vd = obj.verdict ?? obj.decision ?? obj.scores?.verdict;
-        return { rs, fb, vd };
+        const obj = JSON.parse(text)
+        const rs = obj.readiness_score ?? obj.readiness ?? obj.scores?.readiness_score
+        const fb = obj.feasibility_band ?? obj.band ?? obj.verdict?.feasibility_band
+        const vd = obj.verdict ?? obj.decision ?? obj.scores?.verdict
+        return { rs, fb, vd }
       } catch {
-        return null;
+        return null
       }
     }
 
     // =========================================================
     // API KEY STORAGE (local browser only)
     // =========================================================
-    function getApiKey(){
-      return (localStorage.getItem("ip_api_key") || "").trim();
+    function getApiKey() {
+      return (localStorage.getItem("ip_api_key") || "").trim()
     }
-    function setApiKey(key){
-      localStorage.setItem("ip_api_key", (key || "").trim());
+    function setApiKey(key) {
+      localStorage.setItem("ip_api_key", (key || "").trim())
     }
-    function clearApiKey(){
-      localStorage.removeItem("ip_api_key");
+    function clearApiKey() {
+      localStorage.removeItem("ip_api_key")
     }
-    function updateKeyUI(){
+    function updateKeyUI() {
       // Professional UX: do not display the key; only show status.
-      const key = getApiKey();
+      const key = getApiKey()
       $("keyStatus").innerHTML = key
         ? `Status: <span class="mono">Key saved ✓</span>`
-        : `Status: <span class="mono">No key saved</span>`;
+        : `Status: <span class="mono">No key saved</span>`
     }
 
     // =========================================================
     // BACKEND HEALTH CHECK (for user confidence)
     // =========================================================
-    async function checkBackend(){
-      const pillText = $("pillText");
-      const dot = $("pillDot");
+    async function checkBackend() {
+      const pillText = $("pillText")
+      const dot = $("pillDot")
 
-      try{
+      try {
         // Assumes your backend has GET /
-        const res = await fetch(`${BACKEND_BASE}/`, { method:"GET" });
-        if (!res.ok) throw new Error("Not OK");
-        dot.style.background = "var(--accent2)";
-        dot.style.boxShadow = "0 0 0 4px rgba(57,217,138,.12)";
-        pillText.textContent = "Backend: online";
-      }catch(e){
-        dot.style.background = "var(--danger)";
-        dot.style.boxShadow = "0 0 0 4px rgba(255,92,122,.12)";
-        pillText.textContent = "Backend: offline / CORS / URL issue";
+        const res = await fetch(`${BACKEND_BASE}/`, { method: "GET" })
+        if (!res.ok) throw new Error("Not OK")
+        dot.style.background = "var(--accent2)"
+        dot.style.boxShadow = "0 0 0 4px rgba(57,217,138,.12)"
+        pillText.textContent = "Backend: online"
+      } catch (e) {
+        dot.style.background = "var(--danger)"
+        dot.style.boxShadow = "0 0 0 4px rgba(255,92,122,.12)"
+        pillText.textContent = "Backend: offline / CORS / URL issue"
       }
     }
 
     // =========================================================
     // INIT
     // =========================================================
-    updateKeyUI();
-    checkBackend();
+    updateKeyUI()
+    checkBackend()
 
     // =========================================================
     // ADMIN BUTTONS
     // =========================================================
     $("saveApiKeyButton").onclick = () => {
-      const v = $("apiKeyInput").value.trim();
-      if (!v){
-        alert("Paste your API key first (ipk_…).");
-        return;
+      const v = $("apiKeyInput").value.trim()
+      if (!v) {
+        alert("Paste your API key first (ipk_…).")
+        return
       }
-      setApiKey(v);
-      $("apiKeyInput").value = "";
-      updateKeyUI();
-      alert("API key saved locally in this browser.");
-    };
+      setApiKey(v)
+      $("apiKeyInput").value = ""
+      updateKeyUI()
+      alert("API key saved locally in this browser.")
+    }
 
     $("clearApiKeyButton").onclick = () => {
-      clearApiKey();
-      updateKeyUI();
-      alert("API key cleared from this browser.");
-    };
+      clearApiKey()
+      updateKeyUI()
+      alert("API key cleared from this browser.")
+    }
+
+    const toBase64 = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => {
+        const base64String = reader.result.split(',')[1]
+        resolve(base64String)
+      }
+      reader.onerror = (error) => reject(error)
+    })
 
     // =========================================================
     // AUDIT CONTROLS
     // =========================================================
     $("clearAuditBtn").onclick = () => {
-      $("fileInput").value = "";
-      $("auditMeta").textContent = "";
-      $("auditRaw").textContent = "";
-      $("auditQuick").innerHTML = "";
-      $("auditQuick").style.display = "none";
-      showStatus("responseArea", false);
-    };
+      $("fileInput").value = ""
+      $("auditMeta").textContent = ""
+      $("auditRaw").textContent = ""
+      $("auditQuick").innerHTML = ""
+      $("auditQuick").style.display = "none"
+      showStatus("responseArea", false)
+    }
 
     $("submitButton").onclick = async () => {
-      const tenant = $("countryDropdown").value;
-      const fileInput = $("fileInput");
-      const apiKey = getApiKey();
+      const tenant = $("countryDropdown").value
+      const fileInput = $("fileInput")
+      const apiKey = getApiKey()
 
       // reset UI
-      $("auditMeta").textContent = "";
-      $("auditRaw").textContent = "";
-      $("auditQuick").innerHTML = "";
-      $("auditQuick").style.display = "none";
-      showStatus("responseArea", false);
+      $("auditMeta").textContent = ""
+      $("auditRaw").textContent = ""
+      $("auditQuick").innerHTML = ""
+      $("auditQuick").style.display = "none"
+      showStatus("responseArea", false)
 
       // validation
-      if (!tenant){
-        showStatus("responseArea", true);
-        setBadge($("auditBadge"), "warn", "Missing tenant");
-        $("auditTime").textContent = nowTime();
-        $("auditRaw").textContent = "Please select a tenant/country first.";
-        return;
+      if (!tenant) {
+        showStatus("responseArea", true)
+        setBadge($("auditBadge"), "warn", "Missing tenant")
+        $("auditTime").textContent = nowTime()
+        $("auditRaw").textContent = "Please select a tenant/country first."
+        return
       }
-      if (!fileInput.files.length){
-        showStatus("responseArea", true);
-        setBadge($("auditBadge"), "warn", "Missing file");
-        $("auditTime").textContent = nowTime();
-        $("auditRaw").textContent = "Please select a PDF or CSV file.";
-        return;
+      if (!fileInput.files.length) {
+        showStatus("responseArea", true)
+        setBadge($("auditBadge"), "warn", "Missing file")
+        $("auditTime").textContent = nowTime()
+        $("auditRaw").textContent = "Please select a PDF or CSV file."
+        return
       }
-      if (!apiKey){
-        showStatus("responseArea", true);
-        setBadge($("auditBadge"), "warn", "No API key");
-        $("auditTime").textContent = nowTime();
-        $("auditRaw").textContent = "Go to Admin and save your API key first.";
-        return;
+      if (!apiKey) {
+        showStatus("responseArea", true)
+        setBadge($("auditBadge"), "warn", "No API key")
+        $("auditTime").textContent = nowTime()
+        $("auditRaw").textContent = "Go to Admin and save your API key first."
+        return
       }
 
-      const file = fileInput.files[0];
-      $("auditMeta").textContent = `Uploading: ${file.name} (${Math.round(file.size/1024)} KB)`;
+      const file = fileInput.files[0]
+      $("auditMeta").textContent = `Uploading: ${file.name} (${Math.round(file.size / 1024)} KB)`
 
       // lock button + show spinner
-      const btn = $("submitButton");
-      btn.disabled = true;
-      $("auditSpinner").style.display = "inline";
+      const btn = $("submitButton")
+      btn.disabled = true
+      $("auditSpinner").style.display = "inline"
 
-      setBadge($("auditBadge"), "warn", "Running…");
-      $("auditTime").textContent = nowTime();
-      showStatus("responseArea", true);
+      setBadge($("auditBadge"), "warn", "Running…")
+      $("auditTime").textContent = nowTime()
+      showStatus("responseArea", true)
 
-      // Build multipart form payload for file upload
-      const formData = new FormData();
-      formData.append("file", file);
-      // Optional hint if your backend reads it for logging/routing
-      formData.append("country", tenant);
-
-      try{
+      try {
         // Send request with required auth + tenant headers
+        // Todo: Remove base64 encoding and send this as multipart/form-data or raw binary when the backend can accept that
+        const base64File = await toBase64(file)
+
         const res = await fetch(`${BACKEND_BASE}/policy/audit`, {
           method: "POST",
           headers: {
             "X-API-Key": apiKey,
-            "X-Tenant-ID": tenant
+            "X-Tenant-ID": tenant,
+            "content-type": "application/json"
           },
-          body: formData
-        });
+          body: JSON.stringify({
+            file: base64File,
+            country: tenant
+          })
+        })
 
-        const text = await res.text();
+        const text = await res.text()
 
         // Friendly HTTP-aware errors
         if (!res.ok) {
-          let msg = text || res.statusText || "Request failed";
-          if (res.status === 401) msg = "Unauthorized: API key missing or invalid.";
-          if (res.status === 403) msg = "Forbidden: your key lacks permission for this tenant.";
-          if (res.status === 413) msg = "File too large: reduce PDF size or test with CSV.";
-          if (res.status === 422) msg = "Validation error: backend rejected the payload format.";
-          if (res.status >= 500) msg = "Server error: backend encountered an issue. Check Render logs.";
-          throw new Error(msg);
+          let msg = text || res.statusText || "Request failed"
+          if (res.status === 401) msg = "Unauthorized: API key missing or invalid."
+          if (res.status === 403) msg = "Forbidden: your key lacks permission for this tenant."
+          if (res.status === 413) msg = "File too large: reduce PDF size or test with CSV."
+          if (res.status === 422) msg = "Validation error: backend rejected the payload format."
+          if (res.status >= 500) msg = "Server error: backend encountered an issue. Check Render logs."
+          throw new Error(msg)
         }
 
-        setBadge($("auditBadge"), "ok", "Success");
-        $("auditTime").textContent = nowTime();
-        $("auditRaw").textContent = safePretty(text);
+        setBadge($("auditBadge"), "ok", "Success")
+        $("auditTime").textContent = nowTime()
+        $("auditRaw").textContent = safePretty(text)
 
         // Try to show quick metric cards if JSON contains them
-        const quick = extractQuickMetrics(text);
-        if (quick){
-          const { rs, fb, vd } = quick;
-          const quickEl = $("auditQuick");
-          quickEl.style.display = "grid";
+        const quick = extractQuickMetrics(text)
+        if (quick) {
+          const { rs, fb, vd } = quick
+          const quickEl = $("auditQuick")
+          quickEl.style.display = "grid"
           quickEl.innerHTML = `
             <div class="box">
               <div class="t">Readiness Score</div>
@@ -495,63 +740,63 @@
               <div class="t">Verdict</div>
               <div class="v">${(typeof vd === "string" ? vd : (vd?.verdict ?? "—"))}</div>
             </div>
-          `;
+          `
         }
 
-      }catch(err){
-        setBadge($("auditBadge"), "err", "Error");
-        $("auditTime").textContent = nowTime();
+      } catch (err) {
+        setBadge($("auditBadge"), "err", "Error")
+        $("auditTime").textContent = nowTime()
         $("auditRaw").textContent =
           "Request failed.\n\n" +
           (err?.message || String(err)) +
-          "\n\nCommon causes:\n- Wrong endpoint path\n- Missing/invalid API key\n- CORS blocked (backend must allow this frontend origin)\n- Backend expects JSON, not FormData\n";
-      }finally{
-        btn.disabled = false;
-        $("auditSpinner").style.display = "none";
+          "\n\nCommon causes:\n- Wrong endpoint path\n- Missing/invalid API key\n- CORS blocked (backend must allow this frontend origin)\n- Backend expects JSON, not FormData\n"
+      } finally {
+        btn.disabled = false
+        $("auditSpinner").style.display = "none"
       }
-    };
+    }
 
     // =========================================================
     // FEEDBACK
     // =========================================================
     $("clearFeedbackBtn").onclick = () => {
-      $("feedbackInput").value = "";
-      $("fbRaw").textContent = "";
-      showStatus("feedbackResponse", false);
-    };
+      $("feedbackInput").value = ""
+      $("fbRaw").textContent = ""
+      showStatus("feedbackResponse", false)
+    }
 
     $("feedbackForm").onsubmit = async (e) => {
-      e.preventDefault();
-      const apiKey = getApiKey();
-      const msg = $("feedbackInput").value.trim();
+      e.preventDefault()
+      const apiKey = getApiKey()
+      const msg = $("feedbackInput").value.trim()
 
-      $("fbRaw").textContent = "";
-      showStatus("feedbackResponse", false);
+      $("fbRaw").textContent = ""
+      showStatus("feedbackResponse", false)
 
       // validation
-      if (!apiKey){
-        showStatus("feedbackResponse", true);
-        setBadge($("fbBadge"), "warn", "No API key");
-        $("fbTime").textContent = nowTime();
-        $("fbRaw").textContent = "Save your API key in Admin first.";
-        return;
+      if (!apiKey) {
+        showStatus("feedbackResponse", true)
+        setBadge($("fbBadge"), "warn", "No API key")
+        $("fbTime").textContent = nowTime()
+        $("fbRaw").textContent = "Save your API key in Admin first."
+        return
       }
-      if (!msg){
-        showStatus("feedbackResponse", true);
-        setBadge($("fbBadge"), "warn", "Empty message");
-        $("fbTime").textContent = nowTime();
-        $("fbRaw").textContent = "Write a short feedback message first.";
-        return;
+      if (!msg) {
+        showStatus("feedbackResponse", true)
+        setBadge($("fbBadge"), "warn", "Empty message")
+        $("fbTime").textContent = nowTime()
+        $("fbRaw").textContent = "Write a short feedback message first."
+        return
       }
 
       // lock UI
-      $("sendFeedbackBtn").disabled = true;
-      $("fbSpinner").style.display = "inline";
-      setBadge($("fbBadge"), "warn", "Sending…");
-      $("fbTime").textContent = nowTime();
-      showStatus("feedbackResponse", true);
+      $("sendFeedbackBtn").disabled = true
+      $("fbSpinner").style.display = "inline"
+      setBadge($("fbBadge"), "warn", "Sending…")
+      $("fbTime").textContent = nowTime()
+      showStatus("feedbackResponse", true)
 
-      try{
+      try {
         const res = await fetch(`${BACKEND_BASE}/feedback`, {
           method: "POST",
           headers: {
@@ -560,36 +805,37 @@
             "X-Tenant-ID": "public"
           },
           body: JSON.stringify({ feedback: msg })
-        });
+        })
 
-        const text = await res.text();
+        const text = await res.text()
 
         // Friendly HTTP-aware errors
         if (!res.ok) {
-          let msg2 = text || res.statusText || "Request failed";
-          if (res.status === 401) msg2 = "Unauthorized: API key missing or invalid.";
-          if (res.status === 403) msg2 = "Forbidden: your key lacks permission to submit feedback.";
-          if (res.status === 422) msg2 = "Validation error: backend rejected the payload.";
-          if (res.status >= 500) msg2 = "Server error: backend encountered an issue. Check Render logs.";
-          throw new Error(msg2);
+          let msg2 = text || res.statusText || "Request failed"
+          if (res.status === 401) msg2 = "Unauthorized: API key missing or invalid."
+          if (res.status === 403) msg2 = "Forbidden: your key lacks permission to submit feedback."
+          if (res.status === 422) msg2 = "Validation error: backend rejected the payload."
+          if (res.status >= 500) msg2 = "Server error: backend encountered an issue. Check Render logs."
+          throw new Error(msg2)
         }
 
-        setBadge($("fbBadge"), "ok", "Sent");
-        $("fbTime").textContent = nowTime();
-        $("fbRaw").textContent = safePretty(text || "Feedback submitted.");
-        $("feedbackInput").value = "";
-      }catch(err){
-        setBadge($("fbBadge"), "err", "Error");
-        $("fbTime").textContent = nowTime();
+        setBadge($("fbBadge"), "ok", "Sent")
+        $("fbTime").textContent = nowTime()
+        $("fbRaw").textContent = safePretty(text || "Feedback submitted.")
+        $("feedbackInput").value = ""
+      } catch (err) {
+        setBadge($("fbBadge"), "err", "Error")
+        $("fbTime").textContent = nowTime()
         $("fbRaw").textContent =
           "Feedback request failed.\n\n" +
           (err?.message || String(err)) +
-          "\n";
-      }finally{
-        $("sendFeedbackBtn").disabled = false;
-        $("fbSpinner").style.display = "none";
+          "\n"
+      } finally {
+        $("sendFeedbackBtn").disabled = false
+        $("fbSpinner").style.display = "none"
       }
     };
   </script>
 </body>
+
 </html>
