@@ -451,25 +451,52 @@
           });
           text = await res.text();
         }
-        // MODE 2: File selected => Upload endpoint
-        else {
-          const file = fileInput.files[0];
-          $("auditMeta").textContent = `Uploading: ${file.name} (${Math.round(file.size/1024)} KB)`;
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("tenant", tenant);
 
-          // IMPORTANT: do NOT set Content-Type manually for FormData
-          res = await fetch(`${BACKEND_BASE}/policy/audit/upload`, {
-            method: "POST",
-            headers: {
-              "X-API-Key": apiKey,
-              "X-Tenant-ID": tenant
-            },
-            body: formData
-          });
-          text = await res.text();
-        }
+        // MODE 2: File selected => Read file (txt/csv) and send as JSON to /policy/audit
+else {
+  const file = fileInput.files[0];
+
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+
+  if (ext === "pdf") {
+    throw new Error(
+      "PDF upload is not supported in this static HTML build yet. " +
+      "Please paste the extracted policy text into the textarea, or convert the PDF to text/CSV."
+    );
+  }
+
+  if (ext !== "txt" && ext !== "csv") {
+    throw new Error("Unsupported file type. Please use TXT or CSV, or paste text.");
+  }
+
+  $("auditMeta").textContent = `Reading file: ${file.name} (${Math.round(file.size/1024)} KB)…`;
+
+  const fileText = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Failed to read file in browser."));
+    reader.readAsText(file);
+  });
+
+  const combinedPrompt =
+    `POLICY DOCUMENT (${file.name})\n\n` +
+    fileText;
+
+  $("auditMeta").textContent = `Sending file content as JSON prompt…`;
+
+  res = await fetch(`${BACKEND_BASE}/policy/audit`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": apiKey,
+      "X-Tenant-ID": tenant
+    },
+    body: JSON.stringify({ prompt: combinedPrompt })
+  });
+
+  text = await res.text();
+}
+
 
         if (!res.ok) {
           let msg = text || res.statusText || "Request failed";
