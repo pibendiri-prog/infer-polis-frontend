@@ -371,166 +371,162 @@
     };
 
     $("submitButton").onclick = async () => {
-      const tenant = $("countryDropdown").value;
-      const fileInput = $("fileInput");
-      const apiKey = getApiKey();
-      const manualPrompt = ($("promptInput").value || "").trim();
-      const hasFile = !!(fileInput.files && fileInput.files.length);
+  const tenant = $("countryDropdown").value;
+  const fileInput = $("fileInput");
+  const apiKey = getApiKey();
+  const manualPrompt = ($("promptInput").value || "").trim();
+  const hasFile = !!(fileInput.files && fileInput.files.length);
 
-      $("auditMeta").textContent = "";
-      $("auditRaw").textContent = "";
-      $("auditQuick").innerHTML = "";
-      $("auditQuick").style.display = "none";
-      showStatus("responseArea", false);
+  $("auditMeta").textContent = "";
+  $("auditRaw").textContent = "";
+  $("auditQuick").innerHTML = "";
+  $("auditQuick").style.display = "none";
+  showStatus("responseArea", false);
 
-      if (!tenant){
-        showStatus("responseArea", true);
-        setBadge($("auditBadge"), "warn", "Missing tenant");
-        $("auditTime").textContent = nowTime();
-        $("auditRaw").textContent = "Please select a tenant/country first.";
-        return;
-      }
-      if (!apiKey){
-        showStatus("responseArea", true);
-        setBadge($("auditBadge"), "warn", "No API key");
-        $("auditTime").textContent = nowTime();
-        $("auditRaw").textContent = "Save your API key first (Admin panel).";
-        return;
-      }
-      if (!manualPrompt && !hasFile){
-        showStatus("responseArea", true);
-        setBadge($("auditBadge"), "warn", "Missing input");
-        $("auditTime").textContent = nowTime();
-        $("auditRaw").textContent = "Paste text OR select a file (PDF/CSV/TXT).";
-        return;
-      }
-
-      const btn = $("submitButton");
-      btn.disabled = true;
-      $("auditSpinner").style.display = "inline";
-      setBadge($("auditBadge"), "warn", "Running…");
-      $("auditTime").textContent = nowTime();
-      showStatus("responseArea", true);
-
-      try{
-        let res, text;
-
-        // MODE 1: Manual prompt overrides file => JSON endpoint
-        if (manualPrompt){
-          $("auditMeta").textContent = "Sending JSON prompt…";
-          res = await fetch(`${BACKEND_BASE}/policy/audit`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-API-Key": apiKey,
-              "X-Tenant-ID": tenant
-            },
-            body: JSON.stringify({ prompt: manualPrompt })
-          });
-          text = await res.text();
-        }
-
-        // MODE 2: File selected => Read file (txt/csv) and send as JSON to /policy/audit
-else {
-  const file = fileInput.files[0];
-
-  const ext = (file.name.split(".").pop() || "").toLowerCase();
-
-  if (ext === "pdf") {
-    throw new Error(
-      "PDF upload is not supported in this static HTML build yet. " +
-      "Please paste the extracted policy text into the textarea, or convert the PDF to text/CSV."
-    );
+  if (!tenant) {
+    showStatus("responseArea", true);
+    setBadge($("auditBadge"), "warn", "Missing tenant");
+    $("auditTime").textContent = nowTime();
+    $("auditRaw").textContent = "Please select a tenant/country first.";
+    return;
   }
 
-  if (ext !== "txt" && ext !== "csv") {
-    throw new Error("Unsupported file type. Please use TXT or CSV, or paste text.");
+  if (!apiKey) {
+    showStatus("responseArea", true);
+    setBadge($("auditBadge"), "warn", "No API key");
+    $("auditTime").textContent = nowTime();
+    $("auditRaw").textContent = "Save your API key first (Admin panel).";
+    return;
   }
 
-  $("auditMeta").textContent = `Reading file: ${file.name} (${Math.round(file.size/1024)} KB)…`;
+  if (!manualPrompt && !hasFile) {
+    showStatus("responseArea", true);
+    setBadge($("auditBadge"), "warn", "Missing input");
+    $("auditTime").textContent = nowTime();
+    $("auditRaw").textContent = "Paste text OR select a file (PDF/CSV/TXT).";
+    return;
+  }
 
-  const fileText = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("Failed to read file in browser."));
-    reader.readAsText(file);
-  });
-
-  const combinedPrompt =
-    `POLICY DOCUMENT (${file.name})\n\n` +
-    fileText;
-
-  $("auditMeta").textContent = `Sending file content as JSON prompt…`;
-
-  res = await fetch(`${BACKEND_BASE}/policy/audit`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-API-Key": apiKey,
-      "X-Tenant-ID": tenant
-    },
-    body: JSON.stringify({ prompt: combinedPrompt })
-  });
-
-  text = await res.text();
-}
-
-
-        if (!res.ok) {
-          let msg = text || res.statusText || "Request failed";
-          if (res.status === 400) msg = "Bad request: unknown tenant or invalid input.";
-          if (res.status === 401) msg = "Unauthorized: API key missing or invalid.";
-          if (res.status === 403) msg = "Forbidden: your key is not permitted for this tenant.";
-          if (res.status === 413) msg = "Payload too large: reduce file size or test with smaller CSV/TXT.";
-          if (res.status === 415) msg = "Unsupported media type: use PDF/CSV/TXT or paste text.";
-          if (res.status === 422) msg = "Validation error: backend rejected input format.";
-          if (res.status >= 500) msg = "Server error: check Render backend logs.";
-          throw new Error(msg);
-        }
-
-        setBadge($("auditBadge"), "ok", "Success");
-        $("auditTime").textContent = nowTime();
-        $("auditRaw").textContent = safePretty(text);
-
-        const quick = extractQuickMetrics(text);
-        if (quick){
-          const { rs, fb, vd } = quick;
-          const quickEl = $("auditQuick");
-          quickEl.style.display = "grid";
-          quickEl.innerHTML = `
-            <div class="box">
-              <div class="t">Readiness Score</div>
-              <div class="v">${(rs ?? "—")}</div>
-            </div>
-            <div class="box">
-              <div class="t">Feasibility Band</div>
-              <div class="v">${(fb ?? "—")}</div>
-            </div>
-            <div class="box">
-              <div class="t">Verdict</div>
-              <div class="v">${(typeof vd === "string" ? vd : (vd?.verdict ?? "—"))}</div>
-            </div>
-          `;
-        }
-
-     }catch(err){
-  setBadge($("auditBadge"), "err", "Error");
+  const btn = $("submitButton");
+  btn.disabled = true;
+  $("auditSpinner").style.display = "inline";
+  setBadge($("auditBadge"), "warn", "Running…");
   $("auditTime").textContent = nowTime();
+  showStatus("responseArea", true);
 
-  $("auditRaw").textContent =
-    "Request failed.\n\n" +
-    (err?.message || String(err)) +
-    "\n\nMode logic:\n" +
-    "- If text is pasted => JSON /policy/audit\n" +
-    "- If TXT/CSV file selected => read in browser and send as JSON /policy/audit\n" +
-    "- If PDF selected => paste extracted text (PDF upload not enabled yet)\n";
-}
+  try {
+    let res, text;
 
-      }finally{
-        btn.disabled = false;
-        $("auditSpinner").style.display = "none";
+    // MODE 1: Manual prompt => JSON endpoint
+    if (manualPrompt) {
+      $("auditMeta").textContent = "Sending JSON prompt…";
+      res = await fetch(`${BACKEND_BASE}/policy/audit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
+          "X-Tenant-ID": tenant
+        },
+        body: JSON.stringify({ prompt: manualPrompt })
+      });
+      text = await res.text();
+    }
+    // MODE 2: File selected => TXT/CSV read in browser, PDF blocked
+    else {
+      const file = fileInput.files[0];
+      const ext = (file.name.split(".").pop() || "").toLowerCase();
+
+      if (ext === "pdf") {
+        throw new Error(
+          "PDF upload is not supported in this static HTML build yet. " +
+          "Please paste the extracted policy text into the textarea, or convert the PDF to text/CSV."
+        );
       }
-    };
+
+      if (ext !== "txt" && ext !== "csv") {
+        throw new Error("Unsupported file type. Please use TXT or CSV, or paste text.");
+      }
+
+      $("auditMeta").textContent = `Reading file: ${file.name}…`;
+
+      const fileText = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("Failed to read file."));
+        reader.readAsText(file);
+      });
+
+      const combinedPrompt = `FILE (${file.name})\n\n${fileText}`;
+
+      $("auditMeta").textContent = "Sending file content as JSON prompt…";
+
+      res = await fetch(`${BACKEND_BASE}/policy/audit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
+          "X-Tenant-ID": tenant
+        },
+        body: JSON.stringify({ prompt: combinedPrompt })
+      });
+
+      text = await res.text();
+    }
+
+    if (!res.ok) {
+      let msg = text || res.statusText || "Request failed";
+      if (res.status === 400) msg = "Bad request: unknown tenant or invalid input.";
+      if (res.status === 401) msg = "Unauthorized: API key missing or invalid.";
+      if (res.status === 403) msg = "Forbidden: your key is not permitted for this tenant.";
+      if (res.status === 413) msg = "Payload too large: reduce file size or test with smaller CSV/TXT.";
+      if (res.status === 415) msg = "Unsupported media type: use TXT/CSV or paste text.";
+      if (res.status === 422) msg = "Validation error: backend rejected input format.";
+      if (res.status >= 500) msg = "Server error: check Render backend logs.";
+      throw new Error(msg);
+    }
+
+    setBadge($("auditBadge"), "ok", "Success");
+    $("auditTime").textContent = nowTime();
+    $("auditRaw").textContent = safePretty(text);
+
+    const quick = extractQuickMetrics(text);
+    if (quick) {
+      const { rs, fb, vd } = quick;
+      const quickEl = $("auditQuick");
+      quickEl.style.display = "grid";
+      quickEl.innerHTML = `
+        <div class="box">
+          <div class="t">Readiness Score</div>
+          <div class="v">${(rs ?? "—")}</div>
+        </div>
+        <div class="box">
+          <div class="t">Feasibility Band</div>
+          <div class="v">${(fb ?? "—")}</div>
+        </div>
+        <div class="box">
+          <div class="t">Verdict</div>
+          <div class="v">${(vd ?? "—")}</div>
+        </div>
+      `;
+    }
+
+  } catch (err) {
+    setBadge($("auditBadge"), "err", "Error");
+    $("auditTime").textContent = nowTime();
+    $("auditRaw").textContent =
+      "Request failed.\n\n" +
+      (err?.message || String(err)) +
+      "\n\nMode logic:\n" +
+      "- If text is pasted => JSON /policy/audit\n" +
+      "- If TXT/CSV file selected => read in browser and send as JSON /policy/audit\n" +
+      "- If PDF selected => paste extracted text (PDF upload not enabled yet)\n";
+  } finally {
+    btn.disabled = false;
+    $("auditSpinner").style.display = "none";
+  }
+};
+
+
   </script>
 </body>
 </html>
