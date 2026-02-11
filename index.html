@@ -535,13 +535,19 @@ else {
           `;
         }
 
-      }catch(err){
-        setBadge($("auditBadge"), "err", "Error");
-        $("auditTime").textContent = nowTime();
-        $("auditRaw").textContent =
-          "Request failed.\n\n" +
-          (err?.message || String(err)) +
-          "\n\nMode logic:\n- If text is pasted => JSON /policy/audit\n- If file selected => FormData /policy/audit/upload\n";
+     }catch(err){
+  setBadge($("auditBadge"), "err", "Error");
+  $("auditTime").textContent = nowTime();
+
+  $("auditRaw").textContent =
+    "Request failed.\n\n" +
+    (err?.message || String(err)) +
+    "\n\nMode logic:\n" +
+    "- If text is pasted => JSON /policy/audit\n" +
+    "- If TXT/CSV file selected => read in browser and send as JSON /policy/audit\n" +
+    "- If PDF selected => paste extracted text (PDF upload not enabled yet)\n";
+}
+
       }finally{
         btn.disabled = false;
         $("auditSpinner").style.display = "none";
