@@ -1,532 +1,418 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Infer-Polis v10.2.9 — Enterprise Policy Intelligence</title>
-
-  
-
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Infer-Polis 11.0 — Policy Audit</title>
   <style>
-    :root{
-      --bg: #0b1220;
-      --panel: rgba(255,255,255,.06);
-      --border: rgba(255,255,255,.14);
-      --text: #e9eefc;
-      --muted:#a8b3d1;
-      --accent:#7c5cff;
-      --accent2:#39d98a;
-      --danger:#ff5c7a;
-      --warn:#ffcc66;
-      --shadow: 0 18px 50px rgba(0,0,0,.35);
-      --radius: 16px;
+    :root { --bg:#0b1220; --card:#0f1b33; --muted:#9fb0d0; --text:#e9f0ff; --line:#22345b; --good:#35c46a; --warn:#ffcc66; --bad:#ff5c5c; }
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text); }
+    header{ padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
+    header h1{ font-size:16px; margin:0; letter-spacing:.2px; }
+    .wrap{ max-width:1100px; margin:0 auto; padding:18px 22px 40px; }
+    .grid{ display:grid; gap:14px; grid-template-columns: 1fr; }
+    @media(min-width:980px){ .grid{ grid-template-columns: 420px 1fr; } }
+    .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    label{ display:block; font-size:12px; color:var(--muted); margin:8px 0 6px; }
+    input, select, textarea{
+      width:100%; box-sizing:border-box; padding:10px 11px;
+      border-radius:10px; border:1px solid #243a68; background:#09152d; color:var(--text);
+      outline:none;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif;
-      background:
-        radial-gradient(1200px 700px at 10% 10%, rgba(124,92,255,.25), transparent 55%),
-        radial-gradient(900px 600px at 90% 20%, rgba(57,217,138,.12), transparent 55%),
-        radial-gradient(700px 500px at 50% 90%, rgba(255,204,102,.08), transparent 60%),
-        var(--bg);
-      color:var(--text);
-      padding: 26px 18px 70px;
-    }
-    .wrap{max-width:1100px;margin:0 auto;}
-    header{display:flex;gap:18px;align-items:center;justify-content:space-between;margin-bottom:18px;}
-    .brand{display:flex;gap:14px;align-items:center;}
-    .logo{
-      width:42px;height:42px;border-radius:14px;
-      background: linear-gradient(135deg, rgba(124,92,255,.9), rgba(57,217,138,.7));
-      box-shadow: 0 14px 40px rgba(124,92,255,.15);
-      border:1px solid rgba(255,255,255,.18);
-    }
-    h1{margin:0;font-size:20px;letter-spacing:.2px;line-height:1.25;}
-    .subtitle{margin-top:2px;color:var(--muted);font-size:13px;}
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.12);
-      color: var(--muted);
-      font-size: 12px;white-space:nowrap;
-    }
-    .dot{width:8px;height:8px;border-radius:50%;background: var(--warn);box-shadow: 0 0 0 4px rgba(255,204,102,.12);}
-    .grid{display:grid;grid-template-columns: 1.15fr .85fr;gap:18px;}
-    @media (max-width: 980px){.grid{grid-template-columns:1fr}header{flex-direction:column;align-items:flex-start}}
-    .card{
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .card .top{
-      padding: 16px 18px;
-      display:flex;justify-content:space-between;align-items:center;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
-    }
-    .card .top h2{margin:0;font-size:14px;letter-spacing:.3px;color:#f1f5ff;}
-    .card .top small{color:var(--muted);}
-    .card .body{padding:16px 18px 18px;}
-    label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px;}
-    .row{display:flex;gap:12px;flex-wrap:wrap;}
-    .row > *{flex:1}
-    select,input[type="text"],input[type="file"],textarea{
-      width:100%;padding:12px 12px;border-radius:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(7,12,22,.55);
-      color: var(--text);
-      outline:none;font-size:14px;
-    }
-    textarea{min-height:110px;resize:vertical}
-    select:focus,input:focus,textarea:focus{
-      border-color: rgba(124,92,255,.55);
-      box-shadow: 0 0 0 4px rgba(124,92,255,.15);
-    }
-    .actions{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+    textarea{ min-height:170px; resize:vertical; }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .btn{
-      appearance:none;border:1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      padding:11px 14px;border-radius:12px;cursor:pointer;
-      font-weight:600;letter-spacing:.2px;font-size:14px;
-      display:inline-flex;align-items:center;gap:10px;
-      transition: transform .06s ease, background .12s ease, border-color .12s ease;
+      cursor:pointer; border:1px solid #2b4782; background:#0a1b3d; color:var(--text);
+      padding:10px 12px; border-radius:10px; font-weight:600;
     }
-    .btn:hover{background: rgba(255,255,255,.10)}
-    .btn:active{transform: translateY(1px)}
-    .btn.primary{
-      border-color: rgba(124,92,255,.55);
-      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(124,92,255,.55));
-      box-shadow: 0 16px 40px rgba(124,92,255,.12);
-    }
-    .btn.success{
-      border-color: rgba(57,217,138,.55);
-      background: linear-gradient(135deg, rgba(57,217,138,.8), rgba(57,217,138,.35));
-      box-shadow: 0 16px 40px rgba(57,217,138,.10);
-    }
-    .btn.danger{border-color: rgba(255,92,122,.45);background: rgba(255,92,122,.12);}
-    .btn:disabled{opacity:.55;cursor:not-allowed;}
-    .helper{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.4;}
-    .status{
-      margin-top:14px;padding:12px 12px;border-radius:12px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      display:none;
-    }
-    .status.show{display:block}
-    .status .head{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px;}
-    .badge{
-      display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;
-      font-size:12px;border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);color: var(--muted);white-space:nowrap;
-    }
-    .badge.ok{border-color: rgba(57,217,138,.45); color:#c9ffe6; background: rgba(57,217,138,.10)}
-    .badge.err{border-color: rgba(255,92,122,.45); color:#ffd0d9; background: rgba(255,92,122,.10)}
-    .badge.warn{border-color: rgba(255,204,102,.45); color:#ffe7b8; background: rgba(255,204,102,.10)}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;font-size:12px;color:#dfe6ff;}
+    .btn:hover{ border-color:#3c62b3; }
+    .btn.primary{ background:#11346e; border-color:#3867c9; }
+    .btn.dl{ background:#0f2b56; }
+    .pill{ display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid var(--line); background:#09152d; }
+    .pill .dot{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+    .muted{ color:var(--muted); }
     pre{
-      margin:0;padding:12px;border-radius:12px;background: rgba(0,0,0,.35);
-      border:1px solid rgba(255,255,255,.10);
-      overflow:auto;max-height:360px;white-space: pre-wrap;word-break: break-word;
+      background:#071127; border:1px solid #20335a; padding:10px; border-radius:12px; overflow:auto;
+      white-space:pre-wrap; word-break:break-word;
     }
-    .split{display:grid;grid-template-columns:1fr;gap:12px;}
-    .kpi{display:grid;grid-template-columns: repeat(3, 1fr);gap:10px;}
-    @media (max-width:520px){.kpi{grid-template-columns:1fr}}
-    .kpi .box{padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background: rgba(255,255,255,.06);}
-    .kpi .box .t{color:var(--muted);font-size:12px}
-    .kpi .box .v{font-size:16px;font-weight:700;margin-top:4px}
-    .muted{color:var(--muted)}
-    .tiny{font-size:12px}
+    table{ width:100%; border-collapse:collapse; font-size:13px; }
+    th, td{ border-bottom:1px solid var(--line); padding:8px 6px; text-align:left; vertical-align:top; }
+    th{ color:var(--muted); font-weight:600; }
+    .small{ font-size:12px; }
+    .two{ display:grid; gap:12px; grid-template-columns:1fr; }
+    @media(min-width:980px){ .two{ grid-template-columns:1fr 1fr; } }
+    .err{ color:#ffb4b4; }
+    .ok{ color:#b7ffc9; }
+    .badge{ font-weight:700; }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
+<header>
+  <h1>Infer-Polis 11.0 — Sovereign Governance Decision Engine</h1>
+  <div class="row">
+    <span class="pill"><span class="dot" id="dotLive" style="background:#666"></span><span id="liveText">Not checked</span></span>
+    <span class="pill">Backend: <span class="badge" id="backendVer">—</span></span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <!-- LEFT: Controls -->
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
         <div>
-          <h1>Infer-Polis v10.2.9 (Enterprise)</h1>
-          <div class="subtitle">Upload PDF/CSV/TXT or Paste Text • KPI/ROI/Feasibility • Donor-grade outputs</div>
+          <div class="muted small">API base</div>
+          <div class="small"><code id="baseUrlLabel"></code></div>
+        </div>
+        <button class="btn" id="btnPing">Check Live</button>
+      </div>
+
+      <label>Tenant</label>
+      <select id="tenantSelect"></select>
+
+      <label>API Key (X-API-Key)</label>
+      <input id="apiKey" placeholder="ipk_..." autocomplete="off"/>
+
+      <div class="row" style="margin-top:10px;">
+        <button class="btn primary" id="btnRun">Run Audit</button>
+        <button class="btn" id="btnClear">Clear</button>
+      </div>
+
+      <label style="margin-top:14px;">Policy Prompt</label>
+      <textarea id="prompt" placeholder="Paste policy text here..."></textarea>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn dl" id="btnPdf" disabled>Download PDF</button>
+        <button class="btn dl" id="btnCsv" disabled>Download CSV</button>
+      </div>
+
+      <div class="muted small" style="margin-top:10px;">
+        Tip: Use <code>output_mode: both</code> so you get <code>human_view</code> + JSON.
+      </div>
+
+      <div id="status" class="small" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="card">
+      <div class="row" style="justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="muted small">Latest Audit</div>
+          <div class="small">audit_id: <code id="auditId">—</code></div>
+        </div>
+        <div class="row">
+          <span class="pill"><span class="dot" id="bandDot" style="background:#666"></span><span id="bandText">—</span></span>
+          <span class="pill">Readiness: <span class="badge" id="readiness">—</span></span>
+          <span class="pill">RoG: <span class="badge" id="rog">—</span></span>
         </div>
       </div>
 
-      <div class="pill" id="backendPill" title="Backend connectivity" role="status" aria-live="polite">
-        <span class="dot" id="pillDot"></span>
-        <span id="pillText">Backend: checking…</span>
+      <h3 style="margin:14px 0 6px; font-size:14px;">Policymaker View (human_view)</h3>
+      <pre id="humanView">—</pre>
+
+      <div class="two">
+        <div>
+          <h3 style="margin:10px 0 6px; font-size:14px;">Minister Brief</h3>
+          <pre id="ministerBrief">—</pre>
+        </div>
+        <div>
+          <h3 style="margin:10px 0 6px; font-size:14px;">Donor Compliance</h3>
+          <pre id="donorCompliance">—</pre>
+        </div>
       </div>
-    </header>
 
-    <div class="grid">
-      <!-- LEFT: AUDIT -->
-      <section class="card" aria-label="Policy audit">
-        <div class="top">
-          <div>
-            <h2>Policy Audit</h2>
-            <small>Enterprise mode: uploads go to <span class="mono">/policy/audit/upload</span>; pasted text goes to <span class="mono">/policy/audit</span>.</small>
-          </div>
-          <small class="muted">Backend: <span class="mono">infer-polis.onrender.com</span></small>
-        </div>
+      <h3 style="margin:10px 0 6px; font-size:14px;">Executive Verdict (Memo)</h3>
+      <pre id="execVerdict">—</pre>
 
-        <div class="body">
-          <div class="row">
-            <div>
-              <label for="countryDropdown">Tenant / Country</label>
-              <select id="countryDropdown" aria-label="Select tenant or country">
-                <option value="" disabled selected>Select a tenant</option>
+      <h3 style="margin:10px 0 6px; font-size:14px;">KPI Scores (21 domains)</h3>
+      <div style="max-height:320px; overflow:auto; border:1px solid var(--line); border-radius:12px;">
+        <table id="kpiTable">
+          <thead><tr><th>Domain</th><th>Score</th><th>Evidence</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
-                <optgroup label="Organizations">
-                  <option value="public">🌍 Public</option>
-                  <option value="afdb">🏛️ AfDB Global</option>
-                  <option value="unicef">💙 UNICEF Int</option>
-                </optgroup>
+      <h3 style="margin:10px 0 6px; font-size:14px;">Stress Tests</h3>
+      <div style="max-height:260px; overflow:auto; border:1px solid var(--line); border-radius:12px;">
+        <table id="stressTable">
+          <thead><tr><th>Scenario</th><th>Readiness</th><th>Band</th><th>Verdict</th><th>RoG</th><th>FR</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
-                <optgroup label="Africa">
-                  <option value="nigeria">🇳🇬 Nigeria</option>
-                  <option value="ghana">🇬🇭 Ghana</option>
-                  <option value="angola">🇦🇴 Angola</option>
-                  <option value="tanzania">🇹🇿 Tanzania</option>
-                  <option value="eswatini">🇸🇿 Eswatini</option>
-                  <option value="zambia">🇿🇲 Zambia</option>
-                  <option value="mozambique">🇲🇿 Mozambique</option>
-                  <option value="malawi">🇲🇼 Malawi</option>
-                  <option value="kenya">🇰🇪 Kenya</option>
-                  <option value="uganda">🇺🇬 Uganda</option>
-                  <option value="rwanda">🇷🇼 Rwanda</option>
-                  <option value="south_africa">🇿🇦 South Africa</option>
-                  <option value="namibia">🇳🇦 Namibia</option>
-                  <option value="botswana">🇧🇼 Botswana</option>
-                  <option value="cameroon">🇨🇲 Cameroon</option>
-                  <option value="senegal">🇸🇳 Senegal</option>
-                  <option value="ethiopia">🇪🇹 Ethiopia</option>
-                  <option value="ivory_coast">🇨🇮 Côte d’Ivoire</option>
-                </optgroup>
-              </select>
-              <div class="helper">Sent as <span class="mono">X-Tenant-ID</span> and also as <span class="mono">tenant</span> form field on upload.</div>
-            </div>
-
-            <div>
-              <label for="fileInput">Policy File (PDF/CSV/TXT)</label>
-              <input type="file" id="fileInput" aria-label="Upload policy file PDF or CSV or TXT" accept=".pdf,.csv,.txt" />
-              <div class="helper">If file is selected, UI uses <span class="mono">multipart/form-data</span> upload endpoint.</div>
-            </div>
-          </div>
-
-          <label for="promptInput">Or paste policy text (optional, overrides upload)</label>
-          <textarea id="promptInput" placeholder="Paste policy or project document text here. If provided, it overrides file upload and will be sent as JSON."></textarea>
-
-          <div class="actions">
-            <button class="btn primary" id="submitButton" aria-label="Run policy audit">
-              <span>Run Audit</span>
-              <span class="mono" id="auditSpinner" style="display:none;">⏳</span>
-            </button>
-            <button class="btn" id="clearAuditBtn" type="button" aria-label="Clear audit form">Clear</button>
-            <span class="muted tiny" id="auditMeta" aria-live="polite"></span>
-          </div>
-
-          <div id="responseArea" class="status" role="status" aria-live="polite">
-            <div class="head">
-              <span class="badge warn" id="auditBadge">Awaiting</span>
-              <span class="muted tiny" id="auditTime"></span>
-            </div>
-            <div class="split">
-              <div id="auditQuick" class="kpi" style="display:none;"></div>
-              <pre id="auditRaw" class="mono"></pre>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- RIGHT: ADMIN + FEEDBACK -->
-      <aside class="card" aria-label="Admin and feedback">
-        <div class="top">
-          <div>
-            <h2>Admin & Feedback</h2>
-            <small>Set API key once in this browser.</small>
-          </div>
-          <small class="muted">Header: <span class="mono">X-API-Key</span></small>
-        </div>
-
-        <div class="body">
-          <label for="apiKeyInput">API Key (stored locally)</label>
-          <input type="text" id="apiKeyInput" aria-label="Enter API key" placeholder="ipk_…" autocomplete="off" />
-          <div class="actions">
-            <button class="btn success" id="saveApiKeyButton" type="button">Save Key</button>
-            <button class="btn danger" id="clearApiKeyButton" type="button">Clear Key</button>
-          </div>
-          <div class="helper" id="keyStatus">Status: <span class="mono">No key saved</span></div>
-
-          <hr style="border:0;border-top:1px solid rgba(255,255,255,.10);margin:16px 0">
-
-          <div class="helper">
-            Enterprise rules:
-            <ul>
-              <li>If you paste text → sends JSON to <span class="mono">/policy/audit</span></li>
-              <li>If you choose a file → uploads FormData to <span class="mono">/policy/audit/upload</span></li>
-              <li>403 means your key is not permitted for that tenant</li>
-              <li>400 Unknown tenant means backend tenant registry needs that ID</li>
-            </ul>
-          </div>
-        </div>
-      </aside>
+      <h3 style="margin:10px 0 6px; font-size:14px;">Raw JSON (audit)</h3>
+      <pre id="rawJson">—</pre>
     </div>
   </div>
+</div>
 
-  <script>
-    const BACKEND_BASE = "https://infer-polis.onrender.com";
+<script>
+(() => {
+  const BASE_URL = "https://infer-polis.onrender.com";   // backend
+  document.getElementById("baseUrlLabel").textContent = BASE_URL;
 
-    const $ = (id) => document.getElementById(id);
-    const nowTime = () => new Date().toLocaleString();
+  const el = (id) => document.getElementById(id);
 
-    function showStatus(areaId, show=true){
-      const el = $(areaId);
-      el.classList.toggle("show", show);
-      el.style.display = show ? "block" : "none";
+  const dotLive = el("dotLive");
+  const liveText = el("liveText");
+  const backendVer = el("backendVer");
+  const tenantSelect = el("tenantSelect");
+  const apiKeyInput = el("apiKey");
+  const promptInput = el("prompt");
+
+  const statusEl = el("status");
+  const auditIdEl = el("auditId");
+  const bandDot = el("bandDot");
+  const bandText = el("bandText");
+  const readinessEl = el("readiness");
+  const rogEl = el("rog");
+
+  const humanViewEl = el("humanView");
+  const ministerBriefEl = el("ministerBrief");
+  const donorComplianceEl = el("donorCompliance");
+  const execVerdictEl = el("execVerdict");
+  const rawJsonEl = el("rawJson");
+
+  const kpiTbody = el("kpiTable").querySelector("tbody");
+  const stressTbody = el("stressTable").querySelector("tbody");
+
+  const btnRun = el("btnRun");
+  const btnClear = el("btnClear");
+  const btnPing = el("btnPing");
+  const btnPdf = el("btnPdf");
+  const btnCsv = el("btnCsv");
+
+  let lastPrompt = "";
+  let lastTenant = "";
+  let lastApiKey = "";
+  let lastAudit = null;
+
+  function setStatus(msg, ok=true){
+    statusEl.innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="err">${msg}</span>`;
+  }
+
+  function bandColor(b){
+    if (b === "GREEN") return "var(--good)";
+    if (b === "AMBER") return "var(--warn)";
+    if (b === "RED") return "var(--bad)";
+    return "#666";
+  }
+
+  async function ping(){
+    try{
+      const r = await fetch(`${BASE_URL}/`);
+      const j = await r.json();
+      const ver = j?.version || "unknown";
+      backendVer.textContent = ver;
+      dotLive.style.background = r.ok ? "var(--good)" : "var(--bad)";
+      liveText.textContent = r.ok ? "Service live" : "Service issue";
+      setStatus(`Backend OK: ${ver}`, true);
+    }catch(e){
+      dotLive.style.background = "var(--bad)";
+      liveText.textContent = "Offline";
+      setStatus(`Backend unreachable: ${e.message}`, false);
     }
+  }
 
-    function setBadge(badgeEl, type, text){
-      badgeEl.className = "badge " + type;
-      badgeEl.textContent = text;
-    }
-
-    function safePretty(text){
-      try { return JSON.stringify(JSON.parse(text), null, 2); }
-      catch { return text; }
-    }
-
-    function extractQuickMetrics(text){
-      try {
-        const obj = JSON.parse(text);
-        const a = obj.audit ?? obj;
-
-        const rs = a.readiness_score ?? a.readiness ?? a.scores?.readiness_score;
-        const fb = a.feasibility_band ?? a.band ?? a.verdict?.feasibility_band;
-        const vd = a.verdict ?? a.decision ?? a.scores?.verdict;
-
-        return { rs, fb, vd };
-      } catch {
-        return null;
+  async function loadTenants(){
+    try{
+      const r = await fetch(`${BASE_URL}/tenants`);
+      const j = await r.json();
+      const items = j?.tenants || [];
+      tenantSelect.innerHTML = "";
+      for (const t of items){
+        const opt = document.createElement("option");
+        opt.value = t.tenant_id;
+        opt.textContent = `${t.label} (${t.tenant_id})`;
+        tenantSelect.appendChild(opt);
       }
+      tenantSelect.value = "public";
+    }catch(e){
+      tenantSelect.innerHTML = `<option value="public">🌍 Public (public)</option>`;
     }
-
-    // API KEY storage
-    function getApiKey(){ return (localStorage.getItem("ip_api_key") || "").trim(); }
-    function setApiKey(key){ localStorage.setItem("ip_api_key", (key || "").trim()); }
-    function clearApiKey(){ localStorage.removeItem("ip_api_key"); }
-    function updateKeyUI(){
-      const key = getApiKey();
-      $("keyStatus").innerHTML = key
-        ? `Status: <span class="mono">Key saved ✓</span>`
-        : `Status: <span class="mono">No key saved</span>`;
-    }
-
-    // Backend health check
-    async function checkBackend(){
-      const pillText = $("pillText");
-      const dot = $("pillDot");
-
-      try{
-        const res = await fetch(`${BACKEND_BASE}/`, { method:"GET" });
-        if (!res.ok) throw new Error("Not OK");
-        dot.style.background = "var(--accent2)";
-        dot.style.boxShadow = "0 0 0 4px rgba(57,217,138,.12)";
-        pillText.textContent = "Backend: online";
-      }catch(e){
-        dot.style.background = "var(--danger)";
-        dot.style.boxShadow = "0 0 0 4px rgba(255,92,122,.12)";
-        pillText.textContent = "Backend: offline / CORS / URL issue";
-      }
-    }
-
-    // INIT
-    updateKeyUI();
-    checkBackend();
-
-    $("saveApiKeyButton").onclick = () => {
-      const v = $("apiKeyInput").value.trim();
-      if (!v){ alert("Paste your API key first (ipk_…)."); return; }
-      setApiKey(v);
-      $("apiKeyInput").value = "";
-      updateKeyUI();
-      alert("API key saved locally in this browser.");
-    };
-
-    $("clearApiKeyButton").onclick = () => {
-      clearApiKey();
-      updateKeyUI();
-      alert("API key cleared.");
-    };
-
-    $("clearAuditBtn").onclick = () => {
-      $("fileInput").value = "";
-      $("promptInput").value = "";
-      $("auditMeta").textContent = "";
-      $("auditRaw").textContent = "";
-      $("auditQuick").innerHTML = "";
-      $("auditQuick").style.display = "none";
-      showStatus("responseArea", false);
-    };
-
-    $("submitButton").onclick = async () => {
-  const tenant = $("countryDropdown").value;
-  const fileInput = $("fileInput");
-  const apiKey = getApiKey();
-  const manualPrompt = ($("promptInput").value || "").trim();
-  const hasFile = !!(fileInput.files && fileInput.files.length);
-
-  $("auditMeta").textContent = "";
-  $("auditRaw").textContent = "";
-  $("auditQuick").innerHTML = "";
-  $("auditQuick").style.display = "none";
-  showStatus("responseArea", false);
-
-  if (!tenant) {
-    showStatus("responseArea", true);
-    setBadge($("auditBadge"), "warn", "Missing tenant");
-    $("auditTime").textContent = nowTime();
-    $("auditRaw").textContent = "Please select a tenant/country first.";
-    return;
   }
 
-  if (!apiKey) {
-    showStatus("responseArea", true);
-    setBadge($("auditBadge"), "warn", "No API key");
-    $("auditTime").textContent = nowTime();
-    $("auditRaw").textContent = "Save your API key first (Admin panel).";
-    return;
+  function clearOutput(){
+    auditIdEl.textContent = "—";
+    bandText.textContent = "—";
+    bandDot.style.background = "#666";
+    readinessEl.textContent = "—";
+    rogEl.textContent = "—";
+    humanViewEl.textContent = "—";
+    ministerBriefEl.textContent = "—";
+    donorComplianceEl.textContent = "—";
+    execVerdictEl.textContent = "—";
+    rawJsonEl.textContent = "—";
+    kpiTbody.innerHTML = "";
+    stressTbody.innerHTML = "";
+    btnPdf.disabled = true;
+    btnCsv.disabled = true;
+    lastAudit = null;
   }
 
-  if (!manualPrompt && !hasFile) {
-    showStatus("responseArea", true);
-    setBadge($("auditBadge"), "warn", "Missing input");
-    $("auditTime").textContent = nowTime();
-    $("auditRaw").textContent = "Paste text OR select a file (PDF/CSV/TXT).";
-    return;
-  }
+  async function runAudit(){
+    const tenantId = tenantSelect.value;
+    const apiKey = apiKeyInput.value.trim();
+    const promptText = (promptInput.value || "").trim();
 
-  const btn = $("submitButton");
-  btn.disabled = true;
-  $("auditSpinner").style.display = "inline";
-  setBadge($("auditBadge"), "warn", "Running…");
-  $("auditTime").textContent = nowTime();
-  showStatus("responseArea", true);
+    if (!apiKey) return setStatus("API key required.", false);
+    if (!promptText || promptText.length < 10) return setStatus("Prompt too short.", false);
 
-  try {
-    let res, text;
+    setStatus("Running audit…", true);
+    clearOutput();
 
-    // MODE 1: Manual prompt => JSON endpoint
-    if (manualPrompt) {
-      $("auditMeta").textContent = "Sending JSON prompt…";
-      res = await fetch(`${BACKEND_BASE}/policy/audit`, {
+    lastPrompt = promptText;
+    lastTenant = tenantId;
+    lastApiKey = apiKey;
+
+    try{
+      const r = await fetch(`${BASE_URL}/policy/audit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-API-Key": apiKey,
-          "X-Tenant-ID": tenant
+          "X-Tenant-ID": tenantId
         },
-        body: JSON.stringify({ prompt: manualPrompt })
+        body: JSON.stringify({
+          prompt: promptText,
+          output_mode: "both"
+        })
       });
-      text = await res.text();
-    }
-    // MODE 2: File selected => TXT/CSV read in browser, PDF blocked
-    else {
-      const file = fileInput.files[0];
-      const ext = (file.name.split(".").pop() || "").toLowerCase();
 
-      if (ext === "pdf") {
-        throw new Error(
-          "PDF upload is not supported in this static HTML build yet. " +
-          "Please paste the extracted policy text into the textarea, or convert the PDF to text/CSV."
-        );
+      const j = await r.json();
+      if (!r.ok || !j.ok){
+        throw new Error(j?.detail ? JSON.stringify(j.detail) : (j?.error || "Audit failed"));
       }
 
-      if (ext !== "txt" && ext !== "csv") {
-        throw new Error("Unsupported file type. Please use TXT or CSV, or paste text.");
-      }
+      lastAudit = j;
+      renderAudit(j);
+      setStatus("Audit complete.", true);
+      btnPdf.disabled = false;
+      btnCsv.disabled = false;
 
-      $("auditMeta").textContent = `Reading file: ${file.name}…`;
-
-      const fileText = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ""));
-        reader.onerror = () => reject(new Error("Failed to read file."));
-        reader.readAsText(file);
-      });
-
-      const combinedPrompt = `FILE (${file.name})\n\n${fileText}`;
-
-      $("auditMeta").textContent = "Sending file content as JSON prompt…";
-
-      res = await fetch(`${BACKEND_BASE}/policy/audit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": apiKey,
-          "X-Tenant-ID": tenant
-        },
-        body: JSON.stringify({ prompt: combinedPrompt })
-      });
-
-      text = await res.text();
+    }catch(e){
+      setStatus(`Audit error: ${e.message}`, false);
     }
+  }
 
-    if (!res.ok) {
-      let msg = text || res.statusText || "Request failed";
-      if (res.status === 400) msg = "Bad request: unknown tenant or invalid input.";
-      if (res.status === 401) msg = "Unauthorized: API key missing or invalid.";
-      if (res.status === 403) msg = "Forbidden: your key is not permitted for this tenant.";
-      if (res.status === 413) msg = "Payload too large: reduce file size or test with smaller CSV/TXT.";
-      if (res.status === 415) msg = "Unsupported media type: use TXT/CSV or paste text.";
-      if (res.status === 422) msg = "Validation error: backend rejected input format.";
-      if (res.status >= 500) msg = "Server error: check Render backend logs.";
-      throw new Error(msg);
-    }
+  function renderAudit(payload){
+    const auditId = payload.audit_id;
+    const audit = payload.audit || {};
+    const human_view = payload.human_view || audit.human_view || "—";
 
-    setBadge($("auditBadge"), "ok", "Success");
-    $("auditTime").textContent = nowTime();
-    $("auditRaw").textContent = safePretty(text);
+    const band = audit.feasibility_band || "—";
+    const readiness = audit.readiness_score;
+    const rog = audit.rog?.rog_score;
 
-    const quick = extractQuickMetrics(text);
-    if (quick) {
-      const { rs, fb, vd } = quick;
-      const quickEl = $("auditQuick");
-      quickEl.style.display = "grid";
-      quickEl.innerHTML = `
-        <div class="box">
-          <div class="t">Readiness Score</div>
-          <div class="v">${(rs ?? "—")}</div>
-        </div>
-        <div class="box">
-          <div class="t">Feasibility Band</div>
-          <div class="v">${(fb ?? "—")}</div>
-        </div>
-        <div class="box">
-          <div class="t">Verdict</div>
-          <div class="v">${(vd ?? "—")}</div>
-        </div>
+    auditIdEl.textContent = auditId || "—";
+    bandText.textContent = `${band} (${audit.verdict || "—"})`;
+    bandDot.style.background = bandColor(band);
+    readinessEl.textContent = (readiness !== undefined && readiness !== null) ? Number(readiness).toFixed(3) : "—";
+    rogEl.textContent = (rog !== undefined && rog !== null) ? rog : "—";
+
+    humanViewEl.textContent = human_view || "—";
+    ministerBriefEl.textContent = JSON.stringify(audit.minister_brief || {}, null, 2);
+    donorComplianceEl.textContent = JSON.stringify(audit.donor_compliance || {}, null, 2);
+
+    const memo = audit.memo || {};
+    execVerdictEl.textContent = memo.executive_verdict ? String(memo.executive_verdict) : JSON.stringify(memo, null, 2);
+
+    // KPI table
+    const kpis = audit.kpis || {};
+    const kpi_detail = audit.kpi_detail || {};
+    const entries = Object.entries(kpis).sort((a,b) => (b[1]||0) - (a[1]||0));
+    kpiTbody.innerHTML = "";
+    for (const [domain, score] of entries){
+      const tr = document.createElement("tr");
+      const ev = kpi_detail?.[domain];
+      const evShort = ev ? (ev.evidence_source || ev.evidence_snippet || ev.evidence_reference_id || "") : "";
+      tr.innerHTML = `
+        <td>${escapeHtml(domain)}</td>
+        <td>${(score===null||score===undefined) ? "" : Number(score).toFixed(3)}</td>
+        <td class="small muted">${escapeHtml(String(evShort).slice(0,120))}</td>
       `;
+      kpiTbody.appendChild(tr);
     }
 
-  } catch (err) {
-    setBadge($("auditBadge"), "err", "Error");
-    $("auditTime").textContent = nowTime();
-    $("auditRaw").textContent =
-      "Request failed.\n\n" +
-      (err?.message || String(err)) +
-      "\n\nMode logic:\n" +
-      "- If text is pasted => JSON /policy/audit\n" +
-      "- If TXT/CSV file selected => read in browser and send as JSON /policy/audit\n" +
-      "- If PDF selected => paste extracted text (PDF upload not enabled yet)\n";
-  } finally {
-    btn.disabled = false;
-    $("auditSpinner").style.display = "none";
+    // Stress table
+    const stress = audit.stress_test || [];
+    stressTbody.innerHTML = "";
+    for (const s of stress){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(s.scenario||"")}</td>
+        <td>${fmtNum(s.readiness_score, 4)}</td>
+        <td>${escapeHtml(s.feasibility_band||"")}</td>
+        <td>${escapeHtml(s.verdict||"")}</td>
+        <td>${escapeHtml(String(s.rog_score ?? ""))}</td>
+        <td>${fmtNum(s.fr, 4)}</td>
+      `;
+      stressTbody.appendChild(tr);
+    }
+
+    rawJsonEl.textContent = JSON.stringify(audit, null, 2);
   }
-};
 
+  function fmtNum(x, d){
+    if (x === null || x === undefined) return "";
+    const n = Number(x);
+    if (Number.isNaN(n)) return String(x);
+    return n.toFixed(d);
+  }
 
-  </script>
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  async function downloadReport(fmt){
+    const tenantId = lastTenant || tenantSelect.value;
+    const apiKey = lastApiKey || apiKeyInput.value.trim();
+    const promptText = lastPrompt || (promptInput.value || "").trim();
+
+    if (!apiKey) return setStatus("API key required.", false);
+    if (!promptText) return setStatus("Prompt required for report.", false);
+
+    try{
+      setStatus(`Generating ${fmt.toUpperCase()}…`, true);
+      const r = await fetch(`${BASE_URL}/report/generate?format=${encodeURIComponent(fmt)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
+          "X-Tenant-ID": tenantId
+        },
+        body: JSON.stringify({ prompt: promptText })
+      });
+      if (!r.ok) throw new Error("Report generation failed");
+
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `infer-polis-report.${fmt === "csv" ? "csv" : "pdf"}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      setStatus(`${fmt.toUpperCase()} downloaded.`, true);
+    }catch(e){
+      setStatus(`Download error: ${e.message}`, false);
+    }
+  }
+
+  btnPing.addEventListener("click", ping);
+  btnRun.addEventListener("click", runAudit);
+  btnClear.addEventListener("click", () => { promptInput.value=""; clearOutput(); setStatus("Cleared.", true); });
+  btnPdf.addEventListener("click", () => downloadReport("pdf"));
+  btnCsv.addEventListener("click", () => downloadReport("csv"));
+
+  // init
+  loadTenants();
+  ping();
+  clearOutput();
+})();
+</script>
 </body>
 </html>
