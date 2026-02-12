@@ -1,18 +1,18 @@
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Infer-Polis 11.0 — Policy Audit</title>
+
   <style>
     :root { --bg:#0b1220; --card:#0f1b33; --muted:#9fb0d0; --text:#e9f0ff; --line:#22345b; --good:#35c46a; --warn:#ffcc66; --bad:#ff5c5c; }
     body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text); }
     header{ padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
     header h1{ font-size:16px; margin:0; letter-spacing:.2px; }
-    .wrap{ max-width:1100px; margin:0 auto; padding:18px 22px 40px; }
+    .wrap{ max-width:1200px; margin:0 auto; padding:18px 22px 40px; }
     .grid{ display:grid; gap:14px; grid-template-columns: 1fr; }
-    @media(min-width:980px){ .grid{ grid-template-columns: 420px 1fr; } }
+    @media(min-width:1100px){ .grid{ grid-template-columns: 420px 1fr; } }
     .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
     label{ display:block; font-size:12px; color:var(--muted); margin:8px 0 6px; }
     input, select, textarea{
@@ -29,6 +29,7 @@
     .btn:hover{ border-color:#3c62b3; }
     .btn.primary{ background:#11346e; border-color:#3867c9; }
     .btn.dl{ background:#0f2b56; }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
     .pill{ display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid var(--line); background:#09152d; }
     .pill .dot{ width:9px; height:9px; border-radius:50%; display:inline-block; }
     .muted{ color:var(--muted); }
@@ -41,12 +42,24 @@
     th{ color:var(--muted); font-weight:600; }
     .small{ font-size:12px; }
     .two{ display:grid; gap:12px; grid-template-columns:1fr; }
-    @media(min-width:980px){ .two{ grid-template-columns:1fr 1fr; } }
+    @media(min-width:1100px){ .two{ grid-template-columns:1fr 1fr; } }
     .err{ color:#ffb4b4; }
     .ok{ color:#b7ffc9; }
     .badge{ font-weight:700; }
+    .hint{ margin-top:8px; font-size:12px; color:var(--muted); line-height:1.35; }
+    .charts{ display:grid; gap:12px; grid-template-columns: 1fr; margin-top:12px; }
+    @media(min-width:1100px){ .charts{ grid-template-columns: 1fr 1fr; } }
+    .chartCard{
+      background:#071127; border:1px solid #20335a; border-radius:12px; padding:10px;
+    }
+    .chartTitle{ font-size:12px; color:var(--muted); margin:0 0 6px; }
+    canvas{ width:100% !important; height:260px !important; }
   </style>
+
+  <!-- Charts: Chart.js (CDN). If your CSP blocks this, see CSP note at bottom. -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
+
 <body>
 <header>
   <h1>Infer-Polis 11.0 — Sovereign Governance Decision Engine</h1>
@@ -58,6 +71,7 @@
 
 <div class="wrap">
   <div class="grid">
+
     <!-- LEFT: Controls -->
     <div class="card">
       <div class="row" style="justify-content:space-between;">
@@ -75,16 +89,25 @@
       <input id="apiKey" placeholder="ipk_..." autocomplete="off"/>
 
       <div class="row" style="margin-top:10px;">
-        <button class="btn primary" id="btnRun">Run Audit</button>
+        <button class="btn primary" id="btnRun">Run Audit (Paste)</button>
+        <button class="btn primary" id="btnUpload">Upload & Audit</button>
         <button class="btn" id="btnClear">Clear</button>
       </div>
 
-      <label style="margin-top:14px;">Policy Prompt</label>
+      <label style="margin-top:14px;">Policy Prompt (Paste Mode)</label>
       <textarea id="prompt" placeholder="Paste policy text here..."></textarea>
+
+      <label style="margin-top:12px;">Upload File (Upload Mode)</label>
+      <input id="fileInput" type="file" accept=".txt,.md,.pdf,.docx,.csv,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/markdown,text/csv"/>
+      <div class="hint">
+        Supported: TXT/MD/CSV (full text download support), PDF/DOCX (audit works, but report download needs backend support).<br/>
+        Upload uses <code>/policy/audit/upload</code> (multipart).
+      </div>
 
       <div class="row" style="margin-top:12px;">
         <button class="btn dl" id="btnPdf" disabled>Download PDF</button>
         <button class="btn dl" id="btnCsv" disabled>Download CSV</button>
+        <button class="btn" id="btnCopyJson" disabled>Copy JSON</button>
       </div>
 
       <div class="muted small" style="margin-top:10px;">
@@ -92,6 +115,10 @@
       </div>
 
       <div id="status" class="small" style="margin-top:12px;"></div>
+
+      <div class="hint" style="margin-top:12px;">
+        If charts or downloads don’t work, open DevTools → Console/Network and check for CSP/CORS errors.
+      </div>
     </div>
 
     <!-- RIGHT: Results -->
@@ -105,6 +132,22 @@
           <span class="pill"><span class="dot" id="bandDot" style="background:#666"></span><span id="bandText">—</span></span>
           <span class="pill">Readiness: <span class="badge" id="readiness">—</span></span>
           <span class="pill">RoG: <span class="badge" id="rog">—</span></span>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts">
+        <div class="chartCard">
+          <p class="chartTitle">KPI Scores (Bar)</p>
+          <canvas id="chartKpiBar"></canvas>
+        </div>
+        <div class="chartCard">
+          <p class="chartTitle">Stress Test Readiness (Line)</p>
+          <canvas id="chartStressLine"></canvas>
+        </div>
+        <div class="chartCard" style="grid-column:1/-1;">
+          <p class="chartTitle">KPI Score Distribution (Histogram)</p>
+          <canvas id="chartKpiHist"></canvas>
         </div>
       </div>
 
@@ -144,11 +187,15 @@
       <h3 style="margin:10px 0 6px; font-size:14px;">Raw JSON (audit)</h3>
       <pre id="rawJson">—</pre>
     </div>
+
   </div>
 </div>
 
 <script>
 (() => {
+  // =========================
+  // CONFIG
+  // =========================
   const BASE_URL = "https://infer-polis.onrender.com";   // backend
   document.getElementById("baseUrlLabel").textContent = BASE_URL;
 
@@ -160,6 +207,7 @@
   const tenantSelect = el("tenantSelect");
   const apiKeyInput = el("apiKey");
   const promptInput = el("prompt");
+  const fileInput = el("fileInput");
 
   const statusEl = el("status");
   const auditIdEl = el("auditId");
@@ -178,18 +226,28 @@
   const stressTbody = el("stressTable").querySelector("tbody");
 
   const btnRun = el("btnRun");
+  const btnUpload = el("btnUpload");
   const btnClear = el("btnClear");
   const btnPing = el("btnPing");
   const btnPdf = el("btnPdf");
   const btnCsv = el("btnCsv");
+  const btnCopyJson = el("btnCopyJson");
 
   let lastPrompt = "";
   let lastTenant = "";
   let lastApiKey = "";
   let lastAudit = null;
 
+  // Charts
+  let chartKpiBar = null;
+  let chartStressLine = null;
+  let chartKpiHist = null;
+
+  // =========================
+  // UI helpers
+  // =========================
   function setStatus(msg, ok=true){
-    statusEl.innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="err">${msg}</span>`;
+    statusEl.innerHTML = ok ? `<span class="ok">${escapeHtml(msg)}</span>` : `<span class="err">${escapeHtml(msg)}</span>`;
   }
 
   function bandColor(b){
@@ -199,6 +257,77 @@
     return "#666";
   }
 
+  function setBusy(isBusy){
+    btnRun.disabled = isBusy;
+    btnUpload.disabled = isBusy;
+    btnPing.disabled = isBusy;
+    btnClear.disabled = isBusy;
+    document.body.style.cursor = isBusy ? "progress" : "default";
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function fmtNum(x, d){
+    if (x === null || x === undefined) return "";
+    const n = Number(x);
+    if (Number.isNaN(n)) return String(x);
+    return n.toFixed(d);
+  }
+
+  function clearOutput(){
+    auditIdEl.textContent = "—";
+    bandText.textContent = "—";
+    bandDot.style.background = "#666";
+    readinessEl.textContent = "—";
+    rogEl.textContent = "—";
+    humanViewEl.textContent = "—";
+    ministerBriefEl.textContent = "—";
+    donorComplianceEl.textContent = "—";
+    execVerdictEl.textContent = "—";
+    rawJsonEl.textContent = "—";
+    kpiTbody.innerHTML = "";
+    stressTbody.innerHTML = "";
+    btnPdf.disabled = true;
+    btnCsv.disabled = true;
+    btnCopyJson.disabled = true;
+    lastAudit = null;
+
+    // clear charts
+    destroyCharts();
+  }
+
+  function destroyCharts(){
+    if (chartKpiBar) { chartKpiBar.destroy(); chartKpiBar = null; }
+    if (chartStressLine) { chartStressLine.destroy(); chartStressLine = null; }
+    if (chartKpiHist) { chartKpiHist.destroy(); chartKpiHist = null; }
+  }
+
+  // =========================
+  // Data helpers
+  // =========================
+  async function readFileAsText(file){
+    const name = (file?.name || "").toLowerCase();
+    const isTextLike = name.endsWith(".txt") || name.endsWith(".md") || name.endsWith(".csv");
+    if (!isTextLike) return null;
+    return await file.text();
+  }
+
+  function canDownloadReport(){
+    // We only generate report from prompt in this frontend
+    return Boolean((lastPrompt || "").trim());
+  }
+
+  function updateDownloadButtons(){
+    const ok = canDownloadReport();
+    btnPdf.disabled = !ok;
+    btnCsv.disabled = !ok;
+  }
+
+  // =========================
+  // Backend calls
+  // =========================
   async function ping(){
     try{
       const r = await fetch(`${BASE_URL}/`);
@@ -230,28 +359,11 @@
       tenantSelect.value = "public";
     }catch(e){
       tenantSelect.innerHTML = `<option value="public">🌍 Public (public)</option>`;
+      tenantSelect.value = "public";
     }
   }
 
-  function clearOutput(){
-    auditIdEl.textContent = "—";
-    bandText.textContent = "—";
-    bandDot.style.background = "#666";
-    readinessEl.textContent = "—";
-    rogEl.textContent = "—";
-    humanViewEl.textContent = "—";
-    ministerBriefEl.textContent = "—";
-    donorComplianceEl.textContent = "—";
-    execVerdictEl.textContent = "—";
-    rawJsonEl.textContent = "—";
-    kpiTbody.innerHTML = "";
-    stressTbody.innerHTML = "";
-    btnPdf.disabled = true;
-    btnCsv.disabled = true;
-    lastAudit = null;
-  }
-
-  async function runAudit(){
+  async function runAuditPaste(){
     const tenantId = tenantSelect.value;
     const apiKey = apiKeyInput.value.trim();
     const promptText = (promptInput.value || "").trim();
@@ -259,7 +371,8 @@
     if (!apiKey) return setStatus("API key required.", false);
     if (!promptText || promptText.length < 10) return setStatus("Prompt too short.", false);
 
-    setStatus("Running audit…", true);
+    setBusy(true);
+    setStatus("Running paste audit…", true);
     clearOutput();
 
     lastPrompt = promptText;
@@ -287,15 +400,136 @@
 
       lastAudit = j;
       renderAudit(j);
-      setStatus("Audit complete.", true);
-      btnPdf.disabled = false;
-      btnCsv.disabled = false;
+      setStatus("Paste audit complete.", true);
+
+      btnCopyJson.disabled = false;
+      updateDownloadButtons();
 
     }catch(e){
-      setStatus(`Audit error: ${e.message}`, false);
+      setStatus(`Paste audit error: ${e.message}`, false);
+    }finally{
+      setBusy(false);
     }
   }
 
+  async function runAuditUpload(){
+    const tenantId = tenantSelect.value;
+    const apiKey = apiKeyInput.value.trim();
+    const f = fileInput.files && fileInput.files[0];
+
+    if (!apiKey) return setStatus("API key required.", false);
+    if (!tenantId) return setStatus("Tenant required.", false);
+    if (!f) return setStatus("Choose a file first (TXT/MD/CSV/PDF/DOCX).", false);
+
+    lastTenant = tenantId;
+    lastApiKey = apiKey;
+
+    // Capture text prompt for downloads (TXT/MD/CSV only)
+    const maybeText = await readFileAsText(f);
+    lastPrompt = (maybeText && maybeText.trim().length > 10) ? maybeText.trim() : "";
+
+    setBusy(true);
+    setStatus(`Uploading "${f.name}" and running audit…`, true);
+    clearOutput();
+
+    try{
+      const fd = new FormData();
+      fd.append("tenant", tenantId);
+      fd.append("output_mode", "both");
+      fd.append("file", f, f.name);
+
+      const r = await fetch(`${BASE_URL}/policy/audit/upload`, {
+        method: "POST",
+        headers: {
+          "X-API-Key": apiKey,
+          "X-Tenant-ID": tenantId
+        },
+        body: fd
+      });
+
+      const j = await r.json();
+      if (!r.ok || !j.ok){
+        throw new Error(j?.detail ? JSON.stringify(j.detail) : (j?.error || "Upload audit failed"));
+      }
+
+      lastAudit = j;
+      renderAudit(j);
+
+      btnCopyJson.disabled = false;
+      updateDownloadButtons();
+
+      if (!canDownloadReport()){
+        setStatus(
+          "Upload audit complete. Note: PDF/CSV download needs a prompt. Use Paste mode OR upload TXT/MD/CSV. (PDF/DOCX text extraction needs backend support.)",
+          true
+        );
+      } else {
+        setStatus("Upload audit complete. Downloads enabled (text-based upload).", true);
+      }
+
+    }catch(e){
+      setStatus(`Upload audit error: ${e.message}`, false);
+    }finally{
+      setBusy(false);
+    }
+  }
+
+  async function downloadReport(fmt){
+    const tenantId = lastTenant || tenantSelect.value;
+    const apiKey = lastApiKey || apiKeyInput.value.trim();
+    const promptText = (lastPrompt || (promptInput.value || "").trim());
+
+    if (!apiKey) return setStatus("API key required.", false);
+    if (!promptText) return setStatus("Paste a prompt (or upload TXT/MD/CSV) for report generation.", false);
+
+    try{
+      setStatus(`Generating ${fmt.toUpperCase()}…`, true);
+
+      const r = await fetch(`${BASE_URL}/report/generate?format=${encodeURIComponent(fmt)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
+          "X-Tenant-ID": tenantId
+        },
+        body: JSON.stringify({ prompt: promptText })
+      });
+
+      if (!r.ok) {
+        const t = await r.text().catch(()=> "");
+        throw new Error(`Report generation failed (${r.status}). ${t.slice(0,140)}`);
+      }
+
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `infer-polis-report.${fmt === "csv" ? "csv" : "pdf"}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      setStatus(`${fmt.toUpperCase()} downloaded.`, true);
+    }catch(e){
+      setStatus(`Download error: ${e.message}`, false);
+    }
+  }
+
+  async function copyJson(){
+    try{
+      if (!lastAudit) return setStatus("Nothing to copy yet. Run an audit first.", false);
+      const audit = lastAudit.audit || lastAudit;
+      await navigator.clipboard.writeText(JSON.stringify(audit, null, 2));
+      setStatus("JSON copied to clipboard.", true);
+    }catch(e){
+      setStatus(`Copy failed: ${e.message}`, false);
+    }
+  }
+
+  // =========================
+  // Rendering + Charts
+  // =========================
   function renderAudit(payload){
     const auditId = payload.audit_id;
     const audit = payload.audit || {};
@@ -322,6 +556,7 @@
     const kpis = audit.kpis || {};
     const kpi_detail = audit.kpi_detail || {};
     const entries = Object.entries(kpis).sort((a,b) => (b[1]||0) - (a[1]||0));
+
     kpiTbody.innerHTML = "";
     for (const [domain, score] of entries){
       const tr = document.createElement("tr");
@@ -330,7 +565,7 @@
       tr.innerHTML = `
         <td>${escapeHtml(domain)}</td>
         <td>${(score===null||score===undefined) ? "" : Number(score).toFixed(3)}</td>
-        <td class="small muted">${escapeHtml(String(evShort).slice(0,120))}</td>
+        <td class="small muted">${escapeHtml(String(evShort).slice(0,140))}</td>
       `;
       kpiTbody.appendChild(tr);
     }
@@ -352,61 +587,121 @@
     }
 
     rawJsonEl.textContent = JSON.stringify(audit, null, 2);
+
+    // Charts
+    buildChartsFromAudit(audit);
   }
 
-  function fmtNum(x, d){
-    if (x === null || x === undefined) return "";
-    const n = Number(x);
-    if (Number.isNaN(n)) return String(x);
-    return n.toFixed(d);
-  }
+  function buildChartsFromAudit(audit){
+    destroyCharts();
 
-  function escapeHtml(s){
-    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
-
-  async function downloadReport(fmt){
-    const tenantId = lastTenant || tenantSelect.value;
-    const apiKey = lastApiKey || apiKeyInput.value.trim();
-    const promptText = lastPrompt || (promptInput.value || "").trim();
-
-    if (!apiKey) return setStatus("API key required.", false);
-    if (!promptText) return setStatus("Prompt required for report.", false);
-
-    try{
-      setStatus(`Generating ${fmt.toUpperCase()}…`, true);
-      const r = await fetch(`${BASE_URL}/report/generate?format=${encodeURIComponent(fmt)}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": apiKey,
-          "X-Tenant-ID": tenantId
-        },
-        body: JSON.stringify({ prompt: promptText })
-      });
-      if (!r.ok) throw new Error("Report generation failed");
-
-      const blob = await r.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `infer-polis-report.${fmt === "csv" ? "csv" : "pdf"}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-
-      setStatus(`${fmt.toUpperCase()} downloaded.`, true);
-    }catch(e){
-      setStatus(`Download error: ${e.message}`, false);
+    // Chart.js not available (CSP blocked CDN etc.)
+    if (typeof Chart === "undefined") {
+      setStatus("Charts blocked (Chart.js not loaded). Fix CSP to allow cdn.jsdelivr.net or host Chart.js locally.", false);
+      return;
     }
+
+    // ---- KPI Bar (top 21) ----
+    const kpis = audit.kpis || {};
+    const kpiEntries = Object.entries(kpis)
+      .map(([k,v]) => [k, Number(v)])
+      .filter(([,v]) => Number.isFinite(v))
+      .sort((a,b) => b[1] - a[1]);
+
+    const kpiLabels = kpiEntries.map(([k]) => k);
+    const kpiValues = kpiEntries.map(([,v]) => v);
+
+    chartKpiBar = new Chart(el("chartKpiBar"), {
+      type: "bar",
+      data: {
+        labels: kpiLabels,
+        datasets: [{
+          label: "KPI Score (0–1)",
+          data: kpiValues
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { min: 0, max: 1 }
+        }
+      }
+    });
+
+    // ---- Stress Line (scenario readiness) ----
+    const stress = Array.isArray(audit.stress_test) ? audit.stress_test : [];
+    const sLabels = stress.map(s => s.scenario || "");
+    const sValues = stress.map(s => {
+      const v = Number(s.readiness_score);
+      return Number.isFinite(v) ? v : null;
+    });
+
+    chartStressLine = new Chart(el("chartStressLine"), {
+      type: "line",
+      data: {
+        labels: sLabels,
+        datasets: [{
+          label: "Readiness (0–1)",
+          data: sValues,
+          tension: 0.25
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { min: 0, max: 1 } }
+      }
+    });
+
+    // ---- Histogram of KPI scores ----
+    const bins = 10;
+    const counts = new Array(bins).fill(0);
+    for (const v of kpiValues){
+      const idx = Math.min(bins - 1, Math.max(0, Math.floor(v * bins)));
+      counts[idx] += 1;
+    }
+    const histLabels = [];
+    for (let i=0; i<bins; i++){
+      const a = (i / bins).toFixed(1);
+      const b = ((i+1)/bins).toFixed(1);
+      histLabels.push(`${a}–${b}`);
+    }
+
+    chartKpiHist = new Chart(el("chartKpiHist"), {
+      type: "bar",
+      data: {
+        labels: histLabels,
+        datasets: [{
+          label: "Count of KPIs",
+          data: counts
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
   }
 
+  // =========================
+  // Events
+  // =========================
   btnPing.addEventListener("click", ping);
-  btnRun.addEventListener("click", runAudit);
-  btnClear.addEventListener("click", () => { promptInput.value=""; clearOutput(); setStatus("Cleared.", true); });
+  btnRun.addEventListener("click", runAuditPaste);
+  btnUpload.addEventListener("click", runAuditUpload);
+  btnClear.addEventListener("click", () => {
+    promptInput.value = "";
+    fileInput.value = "";
+    lastPrompt = "";
+    lastAudit = null;
+    clearOutput();
+    setStatus("Cleared.", true);
+  });
+
   btnPdf.addEventListener("click", () => downloadReport("pdf"));
   btnCsv.addEventListener("click", () => downloadReport("csv"));
+  btnCopyJson.addEventListener("click", copyJson);
 
   // init
   loadTenants();
@@ -414,5 +709,17 @@
   clearOutput();
 })();
 </script>
+
+<!--
+CSP NOTE (Render static _headers):
+If charts do not show (Chart.js blocked), add cdn.jsdelivr.net to script-src, e.g.:
+
+Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://infer-polis.onrender.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; frame-ancestors 'none';
+
+If downloads fail due to blob restrictions, ensure:
+- default-src allows 'self'
+- connect-src includes your backend
+-->
+
 </body>
 </html>
